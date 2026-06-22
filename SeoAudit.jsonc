@@ -1,0 +1,100 @@
+{
+  "name": "SeoAudit",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to business"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "running"
+    },
+    "pages_crawled": {
+      "type": "number",
+      "default": 0
+    },
+    "issues_found": {
+      "type": "number",
+      "default": 0
+    },
+    "critical_issues": {
+      "type": "number",
+      "default": 0
+    },
+    "warnings": {
+      "type": "number",
+      "default": 0
+    },
+    "passed_checks": {
+      "type": "number",
+      "default": 0
+    },
+    "summary": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "duration_seconds": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "business_id",
+    "website_url"
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

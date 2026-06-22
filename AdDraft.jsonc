@@ -1,0 +1,139 @@
+{
+  "name": "AdDraft",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "google_ads",
+        "facebook_ads",
+        "instagram_ads",
+        "local_platform",
+        "marketplace",
+        "google_business_profile",
+        "local_service_promo"
+      ]
+    },
+    "headline_options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "short_description": {
+      "type": "string"
+    },
+    "long_description": {
+      "type": "string"
+    },
+    "call_to_action": {
+      "type": "string"
+    },
+    "service_targeting": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suburb_targeting": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_audience": {
+      "type": "string"
+    },
+    "suggested_budget_notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready_to_draft",
+        "needs_approval",
+        "approved",
+        "requires_connection",
+        "manual_copy_paste",
+        "published",
+        "failed"
+      ],
+      "default": "draft"
+    },
+    "approval_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_id",
+    "platform"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

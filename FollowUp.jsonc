@@ -1,0 +1,103 @@
+{
+  "name": "FollowUp",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "lead_id": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "note": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "lead_name": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional additional context for this follow-up"
+    }
+  },
+  "required": [
+    "business_id",
+    "due_date",
+    "note"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

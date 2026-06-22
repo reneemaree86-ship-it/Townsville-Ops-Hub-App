@@ -1,0 +1,127 @@
+{
+  "name": "ErrorLog",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "error_type": {
+      "type": "string",
+      "enum": [
+        "seo_error",
+        "broken_link",
+        "scan_failure",
+        "lead_import_failure",
+        "scheduled_job_failure",
+        "api_connection_error",
+        "database_error",
+        "app_error",
+        "meta_tag_error",
+        "crawl_failure",
+        "qa_failure",
+        "notification_failure",
+        "other"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "warning",
+        "info"
+      ],
+      "default": "warning"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the error originated"
+    },
+    "error_details": {
+      "type": "string"
+    },
+    "fix_status": {
+      "type": "string",
+      "enum": [
+        "detected",
+        "auto_fix_attempted",
+        "fixed",
+        "manual_action_required",
+        "failed",
+        "waiting_authorisation"
+      ],
+      "default": "detected"
+    },
+    "auto_fix_result": {
+      "type": "string"
+    },
+    "manual_fix_instructions": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "error_type",
+    "severity",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

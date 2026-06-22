@@ -1,0 +1,206 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "contact_details": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "facebook_groups",
+        "gumtree",
+        "google_search",
+        "local_directory",
+        "community_noticeboard",
+        "airtasker",
+        "manual_import",
+        "paste_parser",
+        "url_watchlist",
+        "other"
+      ]
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "service_needed": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "deep_clean",
+        "fortnightly",
+        "weekly",
+        "office_cleaning",
+        "commercial",
+        "hoarder_heavy",
+        "inspection_rescue",
+        "one_off_urgent",
+        "airbnb_shortstay",
+        "window_cleaning",
+        "pressure_washing",
+        "move_in",
+        "general_residential",
+        "business_commercial",
+        "other"
+      ]
+    },
+    "suburb": {
+      "type": "string"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "original_post_text": {
+      "type": "string"
+    },
+    "budget_clues": {
+      "type": "string"
+    },
+    "contact_method": {
+      "type": "string"
+    },
+    "score": {
+      "type": "number",
+      "description": "Lead score 0-100"
+    },
+    "score_breakdown": {
+      "type": "object",
+      "description": "Detailed scoring factors"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "hot",
+        "needs_approval",
+        "draft_ready",
+        "applied_responded",
+        "follow_up_due",
+        "won",
+        "lost",
+        "not_suitable",
+        "archived"
+      ],
+      "default": "new"
+    },
+    "response_draft": {
+      "type": "string"
+    },
+    "response_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "response_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "estimated_value": {
+      "type": "number"
+    },
+    "repeat_potential": {
+      "type": "string",
+      "enum": [
+        "one_off",
+        "possible_repeat",
+        "likely_repeat",
+        "definite_repeat"
+      ]
+    },
+    "follow_up_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scan_id": {
+      "type": "string",
+      "description": "Reference to lead scan that found this"
+    },
+    "file_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "business_id",
+    "source",
+    "service_needed"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

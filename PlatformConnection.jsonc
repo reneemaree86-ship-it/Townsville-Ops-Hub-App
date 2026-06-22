@@ -1,0 +1,106 @@
+{
+  "name": "PlatformConnection",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "platform_name": {
+      "type": "string"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "not_connected",
+        "requires_authorised_connection",
+        "manual_monitoring_only",
+        "api_unavailable",
+        "terms_restricted",
+        "fallback_active"
+      ],
+      "default": "not_connected"
+    },
+    "connection_type": {
+      "type": "string",
+      "enum": [
+        "api",
+        "oauth",
+        "manual",
+        "rss",
+        "webhook",
+        "none"
+      ],
+      "default": "none"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "platform_name",
+    "connection_status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

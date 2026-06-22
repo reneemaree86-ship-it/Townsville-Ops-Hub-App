@@ -1,0 +1,151 @@
+{
+  "name": "SeoIssue",
+  "type": "object",
+  "properties": {
+    "audit_id": {
+      "type": "string"
+    },
+    "business_id": {
+      "type": "string"
+    },
+    "page_url": {
+      "type": "string"
+    },
+    "issue_type": {
+      "type": "string",
+      "enum": [
+        "meta_title",
+        "meta_description",
+        "heading_structure",
+        "broken_link",
+        "image_alt",
+        "schema_markup",
+        "sitemap",
+        "robots_txt",
+        "duplicate_content",
+        "thin_content",
+        "missing_keywords",
+        "location_targeting",
+        "internal_linking",
+        "page_speed",
+        "mobile_usability",
+        "indexing",
+        "local_seo",
+        "other"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "warning",
+        "info"
+      ],
+      "default": "warning"
+    },
+    "description": {
+      "type": "string"
+    },
+    "recommended_fix": {
+      "type": "string"
+    },
+    "fix_status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "auto_fix_attempted",
+        "fixed",
+        "manual_action_required",
+        "failed",
+        "waiting_approval"
+      ],
+      "default": "open"
+    },
+    "auto_fixable": {
+      "type": "boolean",
+      "default": false
+    },
+    "date_detected": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_fixed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "needs_approval": {
+      "type": "boolean",
+      "default": false
+    },
+    "current_value": {
+      "type": "string"
+    },
+    "suggested_value": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_id",
+    "issue_type",
+    "severity",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
