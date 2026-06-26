@@ -12,16 +12,16 @@ export default function Notifications() {
   const qc = useQueryClient();
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-all'],
-    queryFn: () => base44.entities.Notification.list('-created_date', 100),
+    queryFn: () => base44.entities.NotificationQueue.list('-created_date', 100),
   });
 
   const markReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { read: true }),
+    mutationFn: (id) => base44.entities.NotificationQueue.update(id, { read: true }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['notifications-all'] }); qc.invalidateQueries({ queryKey: ['notifications-unread'] }); },
   });
 
   const markAllReadMutation = useMutation({
-    mutationFn: async () => { for (const n of notifications.filter(n => !n.read)) await base44.entities.Notification.update(n.id, { read: true }); },
+    mutationFn: async () => { for (const n of notifications.filter(n => !n.read)) await base44.entities.NotificationQueue.update(n.id, { read: true }); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['notifications-all'] }); qc.invalidateQueries({ queryKey: ['notifications-unread'] }); },
   });
 
