@@ -16,12 +16,12 @@ export default function FollowUps() {
 
   const { data: followUps = [] } = useQuery({
     queryKey: ['followups-all', bid],
-    queryFn: () => bid ? base44.entities.FollowUp.filter({ business_id: bid }, 'due_date', 100) : [],
+    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid }, 'due_date', 100) : [],
     enabled: !!bid,
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.FollowUp.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.Lead.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['followups-all'] }),
   });
 
