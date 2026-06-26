@@ -11,7 +11,7 @@
       ]
     },
     {
-      "entity_name": "FollowUp",
+      "entity_name": "Lead",
       "allowed_operations": [
         "create",
         "update",
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "entity_name": "SeoAudit",
+      "entity_name": "SeoScanResult",
       "allowed_operations": [
         "read",
         "create",
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "entity_name": "Notification",
+      "entity_name": "NotificationQueue",
       "allowed_operations": [
         "read",
         "update",
@@ -67,7 +67,7 @@
       ]
     },
     {
-      "entity_name": "LeadScan",
+      "entity_name": "LeadScanResult",
       "allowed_operations": [
         "read",
         "create",
