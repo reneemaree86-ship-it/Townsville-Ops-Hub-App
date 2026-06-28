@@ -6,7 +6,7 @@ import PageHeader from '@/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
 import { Button } from '@/button';
 import { Badge } from '@/badge';
-import { TrendingUp, Loader2, AlertTriangle, CheckCircle2, Wrench } from 'lucide-react';
+import { TrendingUp, Loader2, AlertTriangle, BarChart2, Search } from 'lucide-react';
 
 const priorityColors = { critical: 'bg-red-500/10 text-red-600 border-red-500/20', high: 'bg-orange-500/10 text-orange-600 border-orange-500/20', medium: 'bg-amber-500/10 text-amber-600 border-amber-500/20', low: 'bg-sky-500/10 text-sky-600 border-sky-500/20' };
 const effortColors = { low: 'bg-emerald-500/10 text-emerald-700', medium: 'bg-amber-500/10 text-amber-700', high: 'bg-red-500/10 text-red-700' };
@@ -18,7 +18,20 @@ export default function OrganicTraffic() {
   const [expanded, setExpanded] = useState(null);
 
   const fetchMutation = useMutation({
-    mutationFn: () => base44.functions.invoke('getTrafficRecommendations', { business_id: bid }),
+    mutationFn: async () => {
+      // Get fresh OAuth tokens from Base44 connectors
+      let ga4_token = null;
+      let gsc_token = null;
+      try {
+        const ga4Res = await base44.integrations.getToken('google_analytics');
+        ga4_token = ga4Res?.access_token || null;
+      } catch {}
+      try {
+        const gscRes = await base44.integrations.getToken('google_search_console');
+        gsc_token = gscRes?.access_token || null;
+      } catch {}
+      return base44.functions.invoke('getTrafficRecommendations', { business_id: bid, ga4_token, gsc_token });
+    },
     onSuccess: (res) => setResult(res.data),
   });
 
@@ -28,12 +41,12 @@ export default function OrganicTraffic() {
     <div className="space-y-6">
       <PageHeader
         title="Organic Traffic Recommendations"
-        description={`AI-powered SEO and traffic analysis for ${activeBusiness.website_url}`}
+        description="Live GA4 + Search Console data with AI-powered SEO analysis"
         business={activeBusiness}
         actions={
           <Button onClick={() => fetchMutation.mutate()} disabled={fetchMutation.isPending} className="gap-2">
             {fetchMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4" />}
-            {fetchMutation.isPending ? 'Analyzing...' : 'Generate Recommendations'}
+            {fetchMutation.isPending ? 'Analysing...' : 'Generate Recommendations'}
           </Button>
         }
       />
@@ -44,26 +57,72 @@ export default function OrganicTraffic() {
         </Card>
       )}
 
-      {result?.setup_required?.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+      {/* Live GA4 Stats */}
+      {result?.live_ga4 && (
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2 text-amber-700">
-              <AlertTriangle className="w-4 h-4" /> Manual Setup Required — Live Traffic Data
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BarChart2 className="w-4 h-4 text-emerald-600" /> Live GA4 — {result.live_ga4.period}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {result.setup_required.map((item, i) => (
-              <div key={i} className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <p className="text-xs font-semibold text-amber-800">{item.name}</p>
-                <p className="text-[10px] text-amber-700 mt-0.5"><strong>Why:</strong> {item.why}</p>
-                <p className="text-[10px] text-amber-700 mt-1 whitespace-pre-line"><strong>How to set up:</strong> {item.how}</p>
-                <p className="text-[10px] text-amber-800 mt-1 font-medium">Secret to add: <code className="bg-amber-100 px-1 rounded">{item.secret_needed}</code></p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-lg border bg-card text-center">
+                <p className="text-[10px] text-muted-foreground">Sessions</p>
+                <p className="text-xl font-bold">{result.live_ga4.totals.sessions.toLocaleString()}</p>
               </div>
-            ))}
+              <div className="p-3 rounded-lg border bg-card text-center">
+                <p className="text-[10px] text-muted-foreground">Users</p>
+                <p className="text-xl font-bold">{result.live_ga4.totals.users.toLocaleString()}</p>
+              </div>
+              <div className="p-3 rounded-lg border bg-card text-center">
+                <p className="text-[10px] text-muted-foreground">Page Views</p>
+                <p className="text-xl font-bold">{result.live_ga4.totals.pageViews.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="space-y-1">
+              {result.live_ga4.channels.map((ch, i) => (
+                <div key={i} className="flex items-center justify-between text-xs p-2 rounded bg-muted/30">
+                  <span className="font-medium">{ch.channel}</span>
+                  <div className="flex gap-3 text-muted-foreground">
+                    <span>{ch.sessions} sessions</span>
+                    <span>Bounce: {ch.bounceRate}</span>
+                    <span>Avg: {ch.avgDuration}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Live GSC Stats */}
+      {result?.live_gsc && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Search className="w-4 h-4 text-blue-600" /> Search Console — Top Queries ({result.live_gsc.period})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              {result.live_gsc.top_queries.map((q, i) => (
+                <div key={i} className="flex items-center justify-between text-xs p-2 rounded bg-muted/30">
+                  <span className="font-medium truncate max-w-[40%]">{q.query}</span>
+                  <div className="flex gap-3 text-muted-foreground">
+                    <span>{q.clicks} clicks</span>
+                    <span>{q.impressions} impr</span>
+                    <span>CTR {q.ctr}</span>
+                    <span>Pos #{q.position}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Connection Status */}
       {result?.data_sources && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3 rounded-lg border bg-card text-center">
@@ -76,17 +135,17 @@ export default function OrganicTraffic() {
           </div>
           <div className={`p-3 rounded-lg border text-center ${result.data_sources.live_search_console ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-muted/40'}`}>
             <p className="text-[10px] text-muted-foreground">Search Console</p>
-            <p className="text-xs font-semibold mt-1">{result.data_sources.live_search_console ? '✓ Connected' : '⚠ Not Connected'}</p>
+            <p className="text-xs font-semibold mt-1">{result.data_sources.live_search_console ? '✓ Connected' : '⚠ No Data Yet'}</p>
           </div>
           <div className={`p-3 rounded-lg border text-center ${result.data_sources.live_analytics ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-muted/40'}`}>
             <p className="text-[10px] text-muted-foreground">Google Analytics</p>
-            <p className="text-xs font-semibold mt-1">{result.data_sources.live_analytics ? '✓ Connected' : '⚠ Not Connected'}</p>
+            <p className="text-xs font-semibold mt-1">{result.data_sources.live_analytics ? '✓ Connected' : '⚠ No Data Yet'}</p>
           </div>
         </div>
       )}
 
       {!result && !fetchMutation.isPending && (
-        <Card><CardContent className="p-8 text-center text-xs text-muted-foreground">Click "Generate Recommendations" to analyse your website and get actionable SEO and traffic tips.</CardContent></Card>
+        <Card><CardContent className="p-8 text-center text-xs text-muted-foreground">Click "Generate Recommendations" to pull live GA4 + Search Console data and get actionable SEO tips.</CardContent></Card>
       )}
 
       {result?.recommendations?.length > 0 && (
@@ -120,7 +179,7 @@ export default function OrganicTraffic() {
                     )}
                     {rec.how_to && (
                       <div className="mt-2">
-                        <p className="text-[10px] font-semibold flex items-center gap-1"><Wrench className="w-3 h-3" /> How to Implement</p>
+                        <p className="text-[10px] font-semibold">How to Implement</p>
                         <p className="text-[10px] text-muted-foreground whitespace-pre-line">{rec.how_to}</p>
                       </div>
                     )}
