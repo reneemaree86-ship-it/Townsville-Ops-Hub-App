@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import PageHeader from '@/components/shared/PageHeader';
-import StatusBadge from '@/components/shared/StatusBadge';
-import StatCard from '@/components/shared/StatCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { base44 } from '@/base44Client';
+import PageHeader from '@/PageHeader';
+import StatusBadge from '@/StatusBadge';
+import StatCard from '@/StatCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/card';
+import { Button } from '@/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { Search, Loader2, AlertTriangle, Info } from 'lucide-react';
 import { format } from 'date-fns';
 
