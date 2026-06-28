@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import StatusBadge from '@/components/shared/StatusBadge';
+import { base44 } from '@/base44Client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/dialog';
+import { Button } from '@/button';
+import { Input } from '@/input';
+import { Textarea } from '@/textarea';
+import { Label } from '@/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
+import { Badge } from '@/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/tabs';
+import { Card, CardContent } from '@/card';
+import StatusBadge from '@/StatusBadge';
 import { Copy, ExternalLink, CheckCircle2 } from 'lucide-react';
 
 const STATUSES = [
