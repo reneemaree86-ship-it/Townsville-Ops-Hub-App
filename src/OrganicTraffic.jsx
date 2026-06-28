@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import PageHeader from '@/components/shared/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { base44 } from '@/base44Client';
+import PageHeader from '@/PageHeader';
+import { Card, CardContent, CardHeader, CardTitle } from '@/card';
+import { Button } from '@/button';
+import { Badge } from '@/badge';
 import { TrendingUp, Loader2, AlertTriangle, CheckCircle2, Wrench } from 'lucide-react';
 
 const priorityColors = { critical: 'bg-red-500/10 text-red-600 border-red-500/20', high: 'bg-orange-500/10 text-orange-600 border-orange-500/20', medium: 'bg-amber-500/10 text-amber-600 border-amber-500/20', low: 'bg-sky-500/10 text-sky-600 border-sky-500/20' };
