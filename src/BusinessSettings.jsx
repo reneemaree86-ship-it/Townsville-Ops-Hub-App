@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import PageHeader from '@/components/shared/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { base44 } from '@/base44Client';
+import PageHeader from '@/PageHeader';
+import { Card, CardContent, CardHeader, CardTitle } from '@/card';
+import { Button } from '@/button';
+import { Input } from '@/input';
+import { Textarea } from '@/textarea';
+import { Label } from '@/label';
+import { Badge } from '@/badge';
 import { Save, Loader2, X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
