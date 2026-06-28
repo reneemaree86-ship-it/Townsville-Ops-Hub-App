@@ -1,0 +1,110 @@
+{
+  "name": "UrlWatchlist",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "check_frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "manual"
+      ],
+      "default": "daily"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "error"
+      ],
+      "default": "active"
+    },
+    "last_result": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this watchlist URL"
+    }
+  },
+  "required": [
+    "business_id",
+    "url"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.business_id": {
+            "$in": "{{user.data.managed_business_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
