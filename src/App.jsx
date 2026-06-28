@@ -1,39 +1,38 @@
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
+import { queryClientInstance } from '@/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import ScrollToTop from './components/ScrollToTop';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
+import PageNotFound from '@/PageNotFound';
+import { AuthProvider, useAuth } from '@/AuthContext';
+import ScrollToTop from '@/ScrollToTop';
+import ProtectedRoute from '@/ProtectedRoute';
+import Login from '@/Login';
+import Register from '@/Register';
+import ForgotPassword from '@/ForgotPassword';
+import ResetPassword from '@/ResetPassword';
 
 // Layout
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import DashboardLayout from '@/DashboardLayout';
 
 // Pages
-import Dashboard from '@/pages/Dashboard';
-import SeoControlCentre from '@/pages/SeoControlCentre';
-import WebsiteCrawlCentre from '@/pages/WebsiteCrawlCentre';
-import OrganicTraffic from '@/pages/OrganicTraffic';
-import QaTestingCentre from '@/pages/QaTestingCentre';
-import LeadFinder from '@/pages/LeadFinder';
-import TownsvilleLeads from '@/pages/TownsvilleLeads';
-import AdGenerator from '@/pages/AdGenerator';
-import PlatformStatus from '@/pages/PlatformStatus';
-import ErrorFixLog from '@/pages/ErrorFixLog';
-import ScanHistory from '@/pages/ScanHistory';
-import Notifications from '@/pages/Notifications';
-import FollowUps from '@/pages/FollowUps';
-import ApprovalQueue from '@/pages/ApprovalQueue';
-import BusinessSettings from '@/pages/BusinessSettings';
-import UrlWatchlistPage from '@/pages/UrlWatchlistPage';
-import CleaningAgent from '@/pages/CleaningAgent';
-import FileCentre from '@/pages/FileCentre';
+import Dashboard from '@/Dashboard';
+import SeoControlCentre from '@/SeoControlCentre';
+import WebsiteCrawlCentre from '@/WebsiteCrawlCentre';
+import OrganicTraffic from '@/OrganicTraffic';
+import QaTestingCentre from '@/QaTestingCentre';
+import LeadFinder from '@/LeadFinder';
+import TownsvilleLeads from '@/TownsvilleLeads';
+import AdGenerator from '@/AdGenerator';
+import PlatformStatus from '@/PlatformStatus';
+import ErrorFixLog from '@/ErrorFixLog';
+import ScanHistory from '@/ScanHistory';
+import Notifications from '@/Notifications';
+import FollowUps from '@/FollowUps';
+import ApprovalQueue from '@/ApprovalQueue';
+import BusinessSettings from '@/BusinessSettings';
+import UrlWatchlistPage from '@/UrlWatchlistPage';
+import CleaningAgent from '@/CleaningAgent';
+import FileCentre from '@/FileCentre';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,7 +47,7 @@ const AuthenticatedApp = () => {
 
   if (authError) {
     if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
+      return <div>User not registered.</div>;
     } else if (authError.type === 'auth_required') {
       navigateToLogin();
       return null;
