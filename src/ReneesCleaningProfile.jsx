@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/badge';
 import { Button } from '@/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
 import { Separator } from '@/separator';
+import { Dialog, DialogContent } from '@/dialog';
 import {
-  Star, MapPin, Globe, Facebook, Phone, Mail, Building2,
+  MapPin, Globe, Facebook, Mail, Building2,
   Sparkles, CheckCircle2, ExternalLink, MessageCircle, CalendarCheck, ClipboardList, Eye
 } from 'lucide-react';
+import CleaningEnquiryForm from '@/CleaningEnquiryForm';
 
 const SERVICES = [
   { name: 'Regular Home Cleaning', rate: '$75/hr', min: '2hr min' },
@@ -40,8 +42,25 @@ const MANUAL_APPROVAL = [
 ];
 
 export default function ReneesCleaningProfile() {
+  const [dialogMode, setDialogMode] = useState(null); // 'book' | 'quote' | null
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
+
+      {/* Booking / Quote Dialog */}
+      <Dialog open={!!dialogMode} onOpenChange={open => !open && setDialogMode(null)}>
+        <DialogContent className="max-w-md w-full p-5">
+          {dialogMode && (
+            <CleaningEnquiryForm
+              mode={dialogMode}
+              onClose={() => setDialogMode(null)}
+              onSuccess={() => {
+                setTimeout(() => setDialogMode(null), 3000);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start gap-4">
@@ -56,7 +75,7 @@ export default function ReneesCleaningProfile() {
           </div>
           <p className="text-sm text-muted-foreground mb-2">Cleaning Services · Townsville, QLD</p>
           <p className="text-sm text-foreground leading-relaxed">
-            Renee's Cleaning Services provides reliable, detailed residential and commercial cleaning across Townsville. 
+            Renee's Cleaning Services provides reliable, detailed residential and commercial cleaning across Townsville.
             Trusted by homeowners, landlords, businesses, and property managers for over-and-above results every time.
           </p>
         </div>
@@ -66,7 +85,7 @@ export default function ReneesCleaningProfile() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         <Button
           className="flex items-center gap-1.5 text-xs"
-          onClick={() => window.open('https://www.reneescleaningservicestsv.com/booking', '_blank')}
+          onClick={() => setDialogMode('book')}
         >
           <CalendarCheck className="w-3.5 h-3.5" />
           Book a Clean
@@ -74,7 +93,7 @@ export default function ReneesCleaningProfile() {
         <Button
           variant="outline"
           className="flex items-center gap-1.5 text-xs"
-          onClick={() => window.open('https://www.reneescleaningservicestsv.com/quote', '_blank')}
+          onClick={() => setDialogMode('quote')}
         >
           <ClipboardList className="w-3.5 h-3.5" />
           Get a Quote
@@ -105,12 +124,6 @@ export default function ReneesCleaningProfile() {
           <MessageCircle className="w-3.5 h-3.5" />
           Message on Facebook
         </Button>
-      </div>
-
-      {/* Note on Book/Quote buttons */}
-      <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 px-4 py-3 text-xs text-amber-800 dark:text-amber-300">
-        ⚠️ <strong>Needs setup:</strong> "Book a Clean" and "Get a Quote" currently link to <code>/booking</code> and <code>/quote</code> on your website. 
-        Once those pages are live, these buttons will work. Or send me a Calendly/booking link and I'll update them.
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
