@@ -33,6 +33,7 @@ import BusinessSettings from '@/BusinessSettings';
 import UrlWatchlistPage from '@/UrlWatchlistPage';
 import CleaningAgent from '@/CleaningAgent';
 import FileCentre from '@/FileCentre';
+import ReneesCleaningProfile from '@/ReneesCleaningProfile';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
           <Route path="/watchlist" element={<UrlWatchlistPage />} />
           <Route path="/agent" element={<CleaningAgent />} />
           <Route path="/file-centre" element={<FileCentre />} />
+          <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
         </Route>
       </Route>
 
