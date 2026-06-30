@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Search, Globe, TrendingUp, TestTube,
   UserSearch, MapPin, Megaphone, Plug, AlertTriangle,
-  History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot
+  History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot, Sparkles, FolderOpen
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { ScrollArea } from '@/scroll-area';
@@ -11,6 +11,7 @@ import { Badge } from '@/badge';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: "Renee's Cleaning Services", icon: Sparkles, path: '/renees-cleaning', featured: true },
   { label: 'SEO Control Centre', icon: Search, path: '/seo' },
   { label: 'Website Crawl Centre', icon: Globe, path: '/crawl' },
   { label: 'Organic Traffic', icon: TrendingUp, path: '/traffic' },
@@ -27,7 +28,7 @@ const navItems = [
   { label: 'URL Watchlist', icon: Link2, path: '/watchlist' },
   { label: 'Business Settings', icon: Settings, path: '/settings' },
   { label: 'Business Assistant', icon: Bot, path: '/agent' },
-  { label: 'File Centre', icon: UserSearch, path: '/file-centre' },
+  { label: 'File Centre', icon: FolderOpen, path: '/file-centre' },
 ];
 
 export default function Sidebar({ activeBusiness, onBusinessChange, businesses, unreadCount, onClose }) {
@@ -68,10 +69,17 @@ export default function Sidebar({ activeBusiness, onBusinessChange, businesses, 
             return (
               <Link key={item.path} to={item.path} onClick={onClose}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : item.featured
+                    ? 'text-primary hover:text-primary hover:bg-primary/10 border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}>
                 <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{item.label}</span>
+                {item.featured && !isActive && (
+                  <Badge className="ml-auto h-4 text-[9px] px-1.5 bg-primary/10 text-primary border-0">Featured</Badge>
+                )}
                 {item.label === 'Notifications' && unreadCount > 0 && (
                   <Badge variant="destructive" className="ml-auto h-4 text-[9px] px-1.5">{unreadCount}</Badge>
                 )}
@@ -82,7 +90,7 @@ export default function Sidebar({ activeBusiness, onBusinessChange, businesses, 
       </ScrollArea>
 
       <div className="p-3 border-t border-border">
-        <p className="text-[9px] text-muted-foreground text-center">Done For You Townsville</p>
+        <p className="text-[9px] text-muted-foreground text-center">Townsville Ops Hub</p>
       </div>
     </aside>
   );
