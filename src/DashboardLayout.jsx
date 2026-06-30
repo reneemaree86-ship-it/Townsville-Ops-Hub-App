@@ -45,7 +45,7 @@ export default function DashboardLayout() {
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
-        <span className="text-sm font-bold text-primary">BCC</span>
+        <span className="text-sm font-bold text-primary">Townsville Ops Hub</span>
         <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/notifications')}>
           <Bell className="w-5 h-5 text-muted-foreground" />
           {unreadCount > 0 && (
