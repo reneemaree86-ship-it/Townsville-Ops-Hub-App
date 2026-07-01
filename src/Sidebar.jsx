@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Search, Globe, TrendingUp, TestTube,
+  LayoutDashboard, Search, Globe, TrendingUp, TestTube, Receipt,
   UserSearch, MapPin, Megaphone, Plug, AlertTriangle,
   History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot, Sparkles, FolderOpen, Inbox
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { Badge } from '@/badge';
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { label: 'Business Inbox', icon: Inbox, path: '/inbox', featured: true },
+  { label: 'Invoices', icon: Receipt, path: '/invoices' },
   { label: "Renee's Cleaning Services", icon: Sparkles, path: '/renees-cleaning', featured: true },
   { label: 'SEO Control Centre', icon: Search, path: '/seo' },
   { label: 'Website Crawl Centre', icon: Globe, path: '/crawl' },
