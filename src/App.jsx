@@ -35,6 +35,7 @@ import CleaningAgent from '@/CleaningAgent';
 import FileCentre from '@/FileCentre';
 import ReneesCleaningProfile from '@/ReneesCleaningProfile';
 import BusinessInbox from '@/BusinessInbox';
+import Invoices from '@/Invoices';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
