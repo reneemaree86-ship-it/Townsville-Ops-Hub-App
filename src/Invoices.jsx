@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
 import { Button } from '@/button';
@@ -547,18 +547,33 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
 }
 export default function Invoices() {
   const { activeBusiness } = useOutletContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
+  const [prefill, setPrefill] = useState(null);
   const [previewInvoice, setPreviewInvoice] = useState(null);
   const [previewClient, setPreviewClient] = useState(null);
 
   useEffect(() => {
     loadData();
   }, [activeBusiness]);
+
+  useEffect(() => {
+    const jobId = searchParams.get('job_id');
+    const clientId = searchParams.get('client_id');
+    if (jobId && clientId) {
+      setPrefill({ job_id: jobId, client_id: clientId });
+      setEditingInvoice(null);
+      setShowForm(true);
+      searchParams.delete('job_id');
+      searchParams.delete('client_id');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams]);
 
   const loadData = async () => {
     setLoading(true);
@@ -582,10 +597,12 @@ export default function Invoices() {
     if (editingInvoice) {
       await base44.entities.Invoice.update(editingInvoice.id, data);
     } else {
-      await base44.entities.Invoice.create(data);
+      const payload = prefill?.job_id ? { ...data, job_id: prefill.job_id } : data;
+      await base44.entities.Invoice.create(payload);
     }
     setShowForm(false);
     setEditingInvoice(null);
+    setPrefill(null);
     loadData();
   };
 
@@ -679,9 +696,9 @@ export default function Invoices() {
               clients={clients}
               businesses={businesses}
               activeBusiness={activeBusiness}
-              existing={editingInvoice}
+              existing={editingInvoice || (prefill ? { client_id: prefill.client_id } : null)}
               onSave={handleSave}
-              onCancel={() => { setShowForm(false); setEditingInvoice(null); }}
+              onCancel={() => { setShowForm(false); setEditingInvoice(null); setPrefill(null); }}
             />
           </CardContent>
         </Card>

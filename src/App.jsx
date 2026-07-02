@@ -37,6 +37,8 @@ import ReneesCleaningProfile from '@/ReneesCleaningProfile';
 import BusinessInbox from '@/BusinessInbox';
 import Invoices from '@/Invoices';
 import Clients from '@/Clients';
+import Quotes from '@/Quotes';
+import Jobs from '@/Jobs';
 
 // Catches the ?code=&state=fb_connect that Facebook Login sends back to our
 // registered root redirect URI, stashes the code, and routes to Platform Status
@@ -93,6 +95,8 @@ const AuthenticatedApp = () => {
             <Route path="/inbox" element={<BusinessInbox />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/clients" element={<Clients />} />
+            <Route path="/quotes" element={<Quotes />} />
+            <Route path="/jobs" element={<Jobs />} />
             <Route path="/seo" element={<SeoControlCentre />} />
             <Route path="/crawl" element={<WebsiteCrawlCentre />} />
             <Route path="/traffic" element={<OrganicTraffic />} />
