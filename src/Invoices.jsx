@@ -10,7 +10,7 @@ import { Textarea } from '@/textarea';
 import { Badge } from '@/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/dialog';
 import { Separator } from '@/separator';
-import { Plus, Eye, Save, Trash2, Send, FileText, ChevronDown, ChevronUp, X, Download } from 'lucide-react';
+import { Plus, Eye, Save, Trash2, Send, FileText, ChevronDown, ChevronUp, X, Download, CheckCircle2, Undo2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import invoiceHeaderImg from '@/assets/invoice-logo-small.png';
@@ -201,9 +201,23 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
           {invoice.payment_method && (
             <>
               <Separator />
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Payment Method</p>
-                <p className="text-sm text-foreground">{invoice.payment_method}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Payment Method</p>
+                  <p className="text-sm text-foreground">{invoice.payment_method}</p>
+                </div>
+                {invoice.status === 'paid' && (
+                  <div className="text-right">
+                    <span className="inline-block text-emerald-600 dark:text-emerald-400 border-2 border-emerald-600/60 dark:border-emerald-400/60 rounded-md px-3 py-1 text-sm font-bold uppercase tracking-wide -rotate-6">
+                      Paid
+                    </span>
+                    {invoice.paid_at && (
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {new Date(invoice.paid_at).toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -568,6 +582,23 @@ export default function Invoices() {
     }
   };
 
+  const handleMarkPaid = async (inv) => {
+    await base44.entities.Invoice.update(inv.id, {
+      status: 'paid',
+      paid_at: new Date().toISOString(),
+    });
+    loadData();
+  };
+
+  const handleMarkUnpaid = async (inv) => {
+    if (!window.confirm('Undo paid status for this invoice?')) return;
+    await base44.entities.Invoice.update(inv.id, {
+      status: 'sent',
+      paid_at: null,
+    });
+    loadData();
+  };
+
   const openPreview = (inv) => {
     const client = clients.find(c => c.id === inv.client_id);
     setPreviewInvoice(inv);
@@ -678,6 +709,20 @@ export default function Invoices() {
                       <span className="text-sm font-bold text-foreground whitespace-nowrap">
                         ${parseFloat(inv.total_amount || 0).toFixed(2)}
                       </span>
+                      {inv.status === 'paid' ? (
+                        <Button size="sm" variant="ghost"
+                          onClick={() => handleMarkUnpaid(inv)}
+                          title={inv.paid_at ? `Paid ${new Date(inv.paid_at).toLocaleDateString('en-AU')} · click to undo` : 'Click to undo'}
+                          className="flex items-center gap-1 text-xs h-7 px-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700">
+                          <Undo2 className="w-3 h-3" /> Paid
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline"
+                          onClick={() => handleMarkPaid(inv)}
+                          className="flex items-center gap-1 text-xs h-7 px-2 border-emerald-600/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/10">
+                          <CheckCircle2 className="w-3 h-3" /> Mark Paid
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline"
                         onClick={() => openPreview(inv)}
                         className="flex items-center gap-1 text-xs h-7 px-2">
