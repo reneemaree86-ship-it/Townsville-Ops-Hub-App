@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/base44Client';
@@ -10,12 +10,13 @@ import { Input } from '@/input';
 import { Textarea } from '@/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/dialog';
-import { Wifi, WifiOff, Plus, Pencil, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, Plus, Pencil, Trash2, AlertTriangle, RefreshCw, Facebook, Loader2, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 // Matches the real PlatformConnection entity schema exactly:
 // platform (enum), status (enum), last_checked_at, last_successful_at,
-// error_message, scopes (array), account_label, notes, business_id
+// error_message, scopes (array), account_label, notes, business_id, external_id, access_token
 
 const PLATFORM_LABELS = {
   facebook: 'Facebook',
@@ -37,7 +38,6 @@ const PLATFORM_OPTIONS = Object.keys(PLATFORM_LABELS);
 const STATUS_OPTIONS = ['connected', 'disconnected', 'error', 'pending'];
 
 const KNOWN_PLATFORM_DEFAULTS = [
-  { platform: 'facebook', notes: 'Requires Facebook OAuth with a linked Page and pages_messaging scope for Messenger leads.' },
   { platform: 'gumtree', notes: 'No public API available. Monitored manually via URL Watchlist.' },
   { platform: 'google_search_console', notes: 'Requires Google Search Console OAuth for organic traffic and SEO data.' },
   { platform: 'google', notes: 'Google Search / Analytics for lead scanning and traffic insights.' },
@@ -51,6 +51,141 @@ const KNOWN_PLATFORM_DEFAULTS = [
 ];
 
 const empty = { platform: '', status: 'pending', account_label: '', notes: '', error_message: '', business_id: '' };
+
+const FB_APP_ID = '1836147090686861';
+const FB_SCOPES = 'pages_show_list,leads_retrieval,pages_messaging,pages_read_engagement,pages_manage_metadata,pages_utility_messaging,business_management';
+
+function FacebookConnectCard({ bid }) {
+  const qc = useQueryClient();
+  const [pagePicker, setPagePicker] = useState({ open: false, pages: [] });
+
+  const { data: fbConnection } = useQuery({
+    queryKey: ['platform-connections', 'facebook'],
+    queryFn: async () => {
+      const all = await base44.entities.PlatformConnection.filter({ platform: 'facebook' });
+      return all?.[0] || null;
+    },
+  });
+
+  const exchangeMutation = useMutation({
+    mutationFn: (code) => base44.functions.invoke('facebookOAuthExchange', {
+      code,
+      redirect_uri: `${window.location.origin}/`,
+    }),
+    onSuccess: (res) => {
+      const pages = res?.data?.pages || res?.pages || [];
+      if (!pages.length) {
+        toast.error('No Facebook Pages found on this account. Make sure you are an admin of the Renee\'s Cleaning Services Page.');
+        return;
+      }
+      setPagePicker({ open: true, pages });
+    },
+    onError: (err) => {
+      toast.error('Facebook connection failed: ' + (err?.message || 'Unknown error'));
+    },
+  });
+
+  useEffect(() => {
+    const pendingCode = sessionStorage.getItem('fb_oauth_code');
+    if (pendingCode) {
+      sessionStorage.removeItem('fb_oauth_code');
+      exchangeMutation.mutate(pendingCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const connectPageMutation = useMutation({
+    mutationFn: (page) => base44.functions.invoke('facebookConnectPage', {
+      page_id: page.id,
+      page_name: page.name,
+      page_access_token: page.access_token,
+      business_id: bid,
+    }),
+    onSuccess: () => {
+      toast.success('Facebook Page connected — leads and Messenger events will now flow in.');
+      setPagePicker({ open: false, pages: [] });
+      qc.invalidateQueries({ queryKey: ['platform-connections'] });
+    },
+    onError: (err) => {
+      toast.error('Failed to connect Page: ' + (err?.message || 'Unknown error'));
+    },
+  });
+
+  const startOAuth = () => {
+    const redirectUri = `${window.location.origin}/`;
+    const url = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${FB_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(FB_SCOPES)}&response_type=code&state=fb_connect`;
+    window.location.href = url;
+  };
+
+  const isConnected = fbConnection?.status === 'connected';
+
+  return (
+    <Card className={isConnected ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-blue-500/30 bg-blue-500/5'}>
+      <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <Facebook className={`w-5 h-5 flex-shrink-0 ${isConnected ? 'text-emerald-600' : 'text-blue-600'}`} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Facebook Login</p>
+              {fbConnection && <StatusBadge status={fbConnection.status} />}
+            </div>
+            {isConnected ? (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Connected Page: <span className="font-medium">{fbConnection.account_label}</span>
+                {fbConnection.last_successful_at && ` · since ${format(new Date(fbConnection.last_successful_at), 'dd MMM yyyy HH:mm')}`}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Connect your Renee's Cleaning Services Facebook Page to receive Lead Ads and Messenger messages directly in the Business Inbox.
+              </p>
+            )}
+            {fbConnection?.status === 'error' && fbConnection.error_message && (
+              <p className="text-[10px] text-red-500 mt-0.5">Error: {fbConnection.error_message}</p>
+            )}
+          </div>
+        </div>
+        <Button
+          size="sm"
+          className="text-xs gap-1.5 flex-shrink-0"
+          onClick={startOAuth}
+          disabled={exchangeMutation.isPending || connectPageMutation.isPending}
+        >
+          {(exchangeMutation.isPending || connectPageMutation.isPending) ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…</>
+          ) : isConnected ? (
+            <><RefreshCw className="w-3.5 h-3.5" /> Reconnect Facebook</>
+          ) : (
+            <><Facebook className="w-3.5 h-3.5" /> Connect Facebook</>
+          )}
+        </Button>
+      </CardContent>
+
+      <Dialog open={pagePicker.open} onOpenChange={(v) => setPagePicker(p => ({ ...p, open: v }))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Select the Facebook Page to connect</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {pagePicker.pages.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => connectPageMutation.mutate(p)}
+                disabled={connectPageMutation.isPending}
+                className="w-full text-left p-3 rounded-lg border hover:border-primary hover:bg-accent transition-colors flex items-center justify-between gap-2"
+              >
+                <div>
+                  <p className="text-sm font-medium">{p.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{p.category} · ID {p.id}</p>
+                </div>
+                {connectPageMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-muted-foreground" />}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
 
 export default function PlatformStatus() {
   const { activeBusiness } = useOutletContext();
@@ -123,6 +258,7 @@ export default function PlatformStatus() {
     else createMutation.mutate(data);
   };
 
+  const nonFacebookConnections = connections.filter(c => c.platform !== 'facebook');
   const connectedCount = connections.filter(c => c.status === 'connected').length;
   const issueCount = connections.filter(c => c.status !== 'connected').length;
 
@@ -153,10 +289,12 @@ export default function PlatformStatus() {
         </div>
       </div>
 
+      <FacebookConnectCard bid={bid} />
+
       {connections.length === 0 && (
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2 text-amber-700"><AlertTriangle className="w-4 h-4" /> No platforms configured yet</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2 text-amber-700"><AlertTriangle className="w-4 h-4" /> No other platforms configured yet</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-amber-700 mb-3">Add the platforms you use so you can track connection status. Quick-add known platforms below:</p>
@@ -181,7 +319,7 @@ export default function PlatformStatus() {
       )}
 
       <div className="grid gap-3">
-        {connections.map(conn => (
+        {nonFacebookConnections.map(conn => (
           <Card key={conn.id}>
             <CardContent className="p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">

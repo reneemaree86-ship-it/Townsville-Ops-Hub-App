@@ -1,7 +1,8 @@
 import { Toaster } from "@/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import PageNotFound from '@/PageNotFound';
 import { AuthProvider, useAuth } from '@/AuthContext';
 import ScrollToTop from '@/ScrollToTop';
@@ -38,6 +39,26 @@ import BusinessInbox from '@/BusinessInbox';
 import Invoices from '@/Invoices';
 import Clients from '@/Clients';
 
+// Catches the ?code=&state=fb_connect that Facebook Login sends back to our
+// registered root redirect URI, stashes the code, and routes to Platform Status
+// where the connection flow actually completes.
+const FacebookOAuthCatcher = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    if (code && state === 'fb_connect') {
+      sessionStorage.setItem('fb_oauth_code', code);
+      navigate('/platforms', { replace: true });
+    }
+  }, [location, navigate]);
+
+  return null;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
@@ -59,41 +80,44 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+    <>
+      <FacebookOAuthCatcher />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route element={<DashboardLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/inbox" element={<BusinessInbox />} />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/seo" element={<SeoControlCentre />} />
-          <Route path="/crawl" element={<WebsiteCrawlCentre />} />
-          <Route path="/traffic" element={<OrganicTraffic />} />
-          <Route path="/qa" element={<QaTestingCentre />} />
-          <Route path="/leads" element={<LeadFinder />} />
-          <Route path="/townsville-leads" element={<TownsvilleLeads />} />
-          <Route path="/ads" element={<AdGenerator />} />
-          <Route path="/platforms" element={<PlatformStatus />} />
-          <Route path="/errors" element={<ErrorFixLog />} />
-          <Route path="/scan-history" element={<ScanHistory />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/follow-ups" element={<FollowUps />} />
-          <Route path="/approvals" element={<ApprovalQueue />} />
-          <Route path="/settings" element={<BusinessSettings />} />
-          <Route path="/watchlist" element={<UrlWatchlistPage />} />
-          <Route path="/agent" element={<CleaningAgent />} />
-          <Route path="/file-centre" element={<FileCentre />} />
-          <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
+        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/inbox" element={<BusinessInbox />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/seo" element={<SeoControlCentre />} />
+            <Route path="/crawl" element={<WebsiteCrawlCentre />} />
+            <Route path="/traffic" element={<OrganicTraffic />} />
+            <Route path="/qa" element={<QaTestingCentre />} />
+            <Route path="/leads" element={<LeadFinder />} />
+            <Route path="/townsville-leads" element={<TownsvilleLeads />} />
+            <Route path="/ads" element={<AdGenerator />} />
+            <Route path="/platforms" element={<PlatformStatus />} />
+            <Route path="/errors" element={<ErrorFixLog />} />
+            <Route path="/scan-history" element={<ScanHistory />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/follow-ups" element={<FollowUps />} />
+            <Route path="/approvals" element={<ApprovalQueue />} />
+            <Route path="/settings" element={<BusinessSettings />} />
+            <Route path="/watchlist" element={<UrlWatchlistPage />} />
+            <Route path="/agent" element={<CleaningAgent />} />
+            <Route path="/file-centre" element={<FileCentre />} />
+            <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </>
   );
 };
 
