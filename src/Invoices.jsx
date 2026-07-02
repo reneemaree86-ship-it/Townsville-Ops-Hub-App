@@ -13,6 +13,7 @@ import { Separator } from '@/separator';
 import { Plus, Eye, Save, Trash2, Send, FileText, ChevronDown, ChevronUp, X, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import invoiceHeaderImg from '@/assets/invoice-header.png';
 
 const SERVICE_RATES = {
   'Standard Clean': 75,
@@ -103,19 +104,25 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
           </DialogTitle>
         </DialogHeader>
 
-        <div ref={invoiceRef} className="bg-card border border-border rounded-lg p-6 space-y-6 font-sans">
-          {/* Header */}
+        <div ref={invoiceRef} className="bg-card border border-border rounded-lg overflow-hidden font-sans">
+          {/* Branded Header Banner */}
+          <img
+            src={invoiceHeaderImg}
+            alt="Renee's Cleaning Services"
+            crossOrigin="anonymous"
+            className="w-full h-auto block"
+          />
+
+          <div className="p-6 space-y-6">
+          {/* Invoice meta strip */}
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-bold text-foreground">Renee's Cleaning Services</h2>
-              <p className="text-xs text-muted-foreground mt-1">Townsville, QLD, Australia</p>
-              <p className="text-xs text-muted-foreground">reneescleaningservicestsv.com</p>
-              <p className="text-xs text-muted-foreground">ABN: 12 345 678 901</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Invoice For</p>
+              <p className="text-sm text-foreground mt-0.5">Professional Cleaning Services</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-primary">INVOICE</div>
-              <p className="text-sm font-semibold text-foreground mt-1">
-                #{invoice.invoice_number || 'DRAFT'}
+              <p className="text-sm font-semibold text-foreground">
+                Invoice #{invoice.invoice_number || 'DRAFT'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Date: {invoiceDate}</p>
               <p className="text-xs text-muted-foreground">Due: {dueDate}</p>
@@ -216,6 +223,7 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
 
           <div className="text-center text-xs text-muted-foreground pt-2">
             Thank you for your business! 💐
+          </div>
           </div>
         </div>
 
