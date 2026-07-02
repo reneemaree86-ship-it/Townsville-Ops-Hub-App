@@ -1,4 +1,5 @@
 import React from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/base44Client';
 import PageHeader from '@/PageHeader';
@@ -11,21 +12,26 @@ import { TestTube, Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-r
 import { format } from 'date-fns';
 
 export default function QaTestingCentre() {
+  const { activeBusiness } = useOutletContext() || {};
   const qc = useQueryClient();
 
   const { data: tests = [] } = useQuery({
     queryKey: ['qa-tests'],
-    queryFn: () => base44.entities.QaTest.list('-created_date', 100),
+    queryFn: () => base44.entities.QaTest.list('-run_at', 200),
   });
 
   const runMutation = useMutation({
-    mutationFn: () => base44.functions.invoke('runQaTests', {}),
+    mutationFn: () => base44.functions.invoke('runQaTests', { business_id: activeBusiness?.id }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['qa-tests'] }),
   });
 
   const batches = {};
   tests.forEach(t => { const k = t.test_batch_id || 'unknown'; if (!batches[k]) batches[k] = []; batches[k].push(t); });
-  const batchKeys = Object.keys(batches).sort().reverse();
+  const batchKeys = Object.keys(batches).sort((a, b) => {
+    const da = batches[a][0]?.run_at || batches[a][0]?.created_date || '';
+    const db = batches[b][0]?.run_at || batches[b][0]?.created_date || '';
+    return db.localeCompare(da);
+  });
   const latestBatch = batchKeys[0] ? batches[batchKeys[0]] : [];
   const passed = latestBatch.filter(t => t.status === 'pass').length;
   const failed = latestBatch.filter(t => t.status === 'fail').length;
@@ -44,9 +50,16 @@ export default function QaTestingCentre() {
         }
       />
 
+      {runMutation.isError && (
+        <Card className="border-red-500/30 bg-red-500/5"><CardContent className="p-3">
+          <p className="text-xs text-red-600">Test run failed: {runMutation.error?.message}</p>
+        </CardContent></Card>
+      )}
       {runMutation.isSuccess && (
         <Card className="border-emerald-500/30 bg-emerald-500/5"><CardContent className="p-3">
-          <p className="text-xs text-emerald-600">Tests complete: {runMutation.data?.data?.passed} passed, {runMutation.data?.data?.failed} failed</p>
+          <p className="text-xs text-emerald-600">
+            Tests complete: {runMutation.data?.data?.passed} passed, {runMutation.data?.data?.failed} failed, {runMutation.data?.data?.warnings} warning(s)
+          </p>
         </CardContent></Card>
       )}
 
@@ -79,10 +92,10 @@ export default function QaTestingCentre() {
                     <TableRow key={test.id}>
                       <TableCell><StatusBadge status={test.status} /></TableCell>
                       <TableCell className="text-xs font-medium">{test.test_name}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{test.area_tested}</TableCell>
-                      <TableCell className="text-[10px] max-w-[200px] truncate">{test.error_found || '—'}</TableCell>
-                      <TableCell className="text-[10px] max-w-[200px] truncate">{test.recommended_fix || '—'}</TableCell>
-                      <TableCell><StatusBadge status={test.severity} /></TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{test.page}</TableCell>
+                      <TableCell className="text-[10px] max-w-[200px] truncate" title={test.error_message || ''}>{test.error_message || '—'}</TableCell>
+                      <TableCell className="text-[10px] max-w-[200px] truncate" title={test.recommended_fix || ''}>{test.recommended_fix || '—'}</TableCell>
+                      <TableCell>{test.severity ? <StatusBadge status={test.severity} /> : '—'}</TableCell>
                     </TableRow>
                   ))
                 )}
@@ -100,14 +113,17 @@ export default function QaTestingCentre() {
               const batch = batches[key];
               const p = batch.filter(t => t.status === 'pass').length;
               const f = batch.filter(t => t.status === 'fail').length;
+              const w = batch.filter(t => t.status === 'warning').length;
+              const when = batch[0]?.run_at || batch[0]?.created_date;
               return (
                 <div key={key} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/50">
                   <div>
                     <p className="text-xs font-medium">{batch.length} tests</p>
-                    <p className="text-[10px] text-muted-foreground">{batch[0] ? format(new Date(batch[0].created_date), 'dd MMM yyyy HH:mm') : key}</p>
+                    <p className="text-[10px] text-muted-foreground">{when ? format(new Date(when), 'dd MMM yyyy HH:mm') : key}</p>
                   </div>
                   <div className="flex gap-2">
                     <span className="text-[10px] text-emerald-600">{p} passed</span>
+                    {w > 0 && <span className="text-[10px] text-amber-500">{w} warning{w !== 1 ? 's' : ''}</span>}
                     {f > 0 && <span className="text-[10px] text-red-500">{f} failed</span>}
                   </div>
                 </div>
