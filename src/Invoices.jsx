@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
@@ -10,7 +10,9 @@ import { Textarea } from '@/textarea';
 import { Badge } from '@/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/dialog';
 import { Separator } from '@/separator';
-import { Plus, Eye, Save, Trash2, Send, FileText, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Plus, Eye, Save, Trash2, Send, FileText, ChevronDown, ChevronUp, X, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const SERVICE_RATES = {
   'Standard Clean': 75,
@@ -50,6 +52,48 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
   const total = parseFloat(invoice.total_amount || 0);
   const travelFee = parseFloat(invoice.travel_fee || 0);
 
+  const invoiceRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `Invoice-${invoice.invoice_number || 'draft'}-${client?.name?.replace(/\s+/g, '-') || 'client'}.pdf`;
+      pdf.save(fileName);
+    } catch (err) {
+      console.error('PDF generation failed', err);
+      alert('Could not generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -59,7 +103,7 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="bg-card border border-border rounded-lg p-6 space-y-6 font-sans">
+        <div ref={invoiceRef} className="bg-card border border-border rounded-lg p-6 space-y-6 font-sans">
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
@@ -177,6 +221,9 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>Close Preview</Button>
+          <Button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center gap-2">
+            <Download className="w-4 h-4" /> {downloading ? 'Generating...' : 'Download PDF'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
