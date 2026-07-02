@@ -32,7 +32,7 @@ export default function SeoControlCentre() {
   });
 
   const auditMutation = useMutation({
-    mutationFn: () => base44.functions.invoke('runSeoAudit', { business_id: bid, website_url: activeBusiness.website_url }),
+    mutationFn: () => base44.functions.invoke('runSeoAudit', { business_id: bid, website_url: activeBusiness.website_1 }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['audits'] });
       qc.invalidateQueries({ queryKey: ['seo-issues'] });
@@ -61,7 +61,7 @@ export default function SeoControlCentre() {
     <div className="space-y-6">
       <PageHeader
         title="SEO Control Centre"
-        description={`Audit and monitor SEO for ${activeBusiness.website_url}`}
+        description={`Audit and monitor SEO for ${activeBusiness.website_1 || 'this business'}`}
         business={activeBusiness}
         actions={
           <Button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="gap-2">
@@ -74,7 +74,7 @@ export default function SeoControlCentre() {
       {auditMutation.isError && <Card className="border-red-500/30 bg-red-500/5"><CardContent className="p-3"><p className="text-xs text-red-600">Audit failed: {auditMutation.error?.message}</p></CardContent></Card>}
       {auditMutation.isSuccess && (
         <Card className="border-emerald-500/30 bg-emerald-500/5"><CardContent className="p-3">
-          <p className="text-xs text-emerald-600">Audit complete: {auditMutation.data?.data?.pages_crawled} pages crawled, {issues.length} issues found</p>
+          <p className="text-xs text-emerald-600">Audit complete: {auditMutation.data?.data?.issues_found ?? issues.length} issue(s) found on {auditMutation.data?.data?.website}</p>
         </CardContent></Card>
       )}
 
@@ -89,13 +89,19 @@ export default function SeoControlCentre() {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Latest Audit</CardTitle></CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div><span className="text-muted-foreground">Status:</span> <StatusBadge status={lastAudit.status} /></div>
-              <div><span className="text-muted-foreground">Pages:</span> <span className="font-medium ml-1">{lastAudit.pages_crawled}</span></div>
-              <div><span className="text-muted-foreground">Issues:</span> <span className="font-medium ml-1">{lastAudit.issues_found}</span></div>
-              <div><span className="text-muted-foreground">Duration:</span> <span className="font-medium ml-1">{lastAudit.duration_seconds}s</span></div>
+              <div><span className="text-muted-foreground">Issues:</span> <span className="font-medium ml-1">{lastAudit.issues_found ?? 0}</span></div>
+              <div><span className="text-muted-foreground">Duration:</span> <span className="font-medium ml-1">
+                {lastAudit.scan_started_at && lastAudit.scan_completed_at
+                  ? `${Math.max(1, Math.round((new Date(lastAudit.scan_completed_at) - new Date(lastAudit.scan_started_at)) / 1000))}s`
+                  : '—'}
+              </span></div>
               <div><span className="text-muted-foreground">Date:</span> <span className="font-medium ml-1">{format(new Date(lastAudit.created_date), 'dd MMM yyyy HH:mm')}</span></div>
             </div>
+            {lastAudit.status === 'failed' && lastAudit.summary && (
+              <p className="text-[10px] text-red-500 mt-2">{lastAudit.summary}</p>
+            )}
           </CardContent>
         </Card>
       )}

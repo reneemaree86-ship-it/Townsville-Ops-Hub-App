@@ -70,24 +70,27 @@ export default function ScanHistory() {
                 <TableHead className="text-[10px]">Date</TableHead>
                 <TableHead className="text-[10px]">Website</TableHead>
                 <TableHead className="text-[10px]">Status</TableHead>
-                <TableHead className="text-[10px]">Pages</TableHead>
                 <TableHead className="text-[10px]">Issues</TableHead>
                 <TableHead className="text-[10px]">Critical</TableHead>
                 <TableHead className="text-[10px]">Duration</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {seoAudits.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-xs text-muted-foreground py-8">No SEO audits yet.</TableCell></TableRow>
-                : seoAudits.map(audit => (
+                {seoAudits.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-xs text-muted-foreground py-8">No SEO audits yet.</TableCell></TableRow>
+                : seoAudits.map(audit => {
+                  const durationSec = audit.scan_started_at && audit.scan_completed_at
+                    ? Math.max(1, Math.round((new Date(audit.scan_completed_at) - new Date(audit.scan_started_at)) / 1000))
+                    : null;
+                  return (
                   <TableRow key={audit.id}>
                     <TableCell className="text-[10px]">{format(new Date(audit.created_date), 'dd MMM HH:mm')}</TableCell>
-                    <TableCell className="text-[10px] max-w-[150px] truncate">{audit.website_url}</TableCell>
+                    <TableCell className="text-[10px] max-w-[150px] truncate">{audit.website}</TableCell>
                     <TableCell><StatusBadge status={audit.status} /></TableCell>
-                    <TableCell className="text-xs">{audit.pages_crawled}</TableCell>
-                    <TableCell className="text-xs">{audit.issues_found}</TableCell>
-                    <TableCell className="text-xs text-red-500">{audit.critical_issues}</TableCell>
-                    <TableCell className="text-[10px]">{audit.duration_seconds}s</TableCell>
+                    <TableCell className="text-xs">{audit.issues_found ?? 0}</TableCell>
+                    <TableCell className="text-xs text-red-500">{audit.critical_count ?? 0}</TableCell>
+                    <TableCell className="text-[10px]">{durationSec ? `${durationSec}s` : '—'}</TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div></CardContent></Card>

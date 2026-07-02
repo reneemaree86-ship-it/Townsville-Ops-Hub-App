@@ -37,12 +37,12 @@ export default function WebsiteCrawlCentre() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-sm">{biz.name}</CardTitle>
-                    <a href={biz.website_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1 mt-0.5">
-                      {biz.website_url} <ExternalLink className="w-2.5 h-2.5" />
+                    <a href={`https://${biz.website_1}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1 mt-0.5">
+                      {biz.website_1} <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>
                   <Button size="sm" className="gap-1.5 text-xs" disabled={isCrawling}
-                    onClick={() => crawlMutation.mutate({ business_id: biz.id, website_url: biz.website_url })}>
+                    onClick={() => crawlMutation.mutate({ business_id: biz.id, website_url: biz.website_1 })}>
                     {isCrawling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
                     {isCrawling ? 'Crawling...' : 'Crawl Now'}
                   </Button>
@@ -53,11 +53,11 @@ export default function WebsiteCrawlCentre() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                       {[
-                        { label: 'Pages', value: latest.pages_crawled, color: '' },
-                        { label: 'Issues', value: latest.issues_found, color: '' },
-                        { label: 'Critical', value: latest.critical_issues, color: 'text-red-500' },
-                        { label: 'Warnings', value: latest.warnings, color: 'text-amber-500' },
-                        { label: 'Passed', value: latest.passed_checks, color: 'text-emerald-500' },
+                        { label: 'Issues', value: latest.issues_found ?? 0, color: '' },
+                        { label: 'Critical', value: latest.critical_count ?? 0, color: 'text-red-500' },
+                        { label: 'High', value: latest.high_count ?? 0, color: 'text-orange-500' },
+                        { label: 'Medium', value: latest.medium_count ?? 0, color: 'text-amber-500' },
+                        { label: 'Low', value: latest.low_count ?? 0, color: 'text-blue-500' },
                       ].map(s => (
                         <div key={s.label} className="text-center p-2 bg-muted/40 rounded-lg">
                           <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
@@ -74,7 +74,7 @@ export default function WebsiteCrawlCentre() {
                         {bizAudits.slice(1, 5).map(a => (
                           <div key={a.id} className="flex items-center justify-between text-[10px] p-1.5 rounded bg-muted/30">
                             <span>{format(new Date(a.created_date), 'dd MMM HH:mm')}</span>
-                            <span>{a.pages_crawled} pages · {a.issues_found} issues</span>
+                            <span>{a.issues_found ?? 0} issues</span>
                             <StatusBadge status={a.status} />
                           </div>
                         ))}
