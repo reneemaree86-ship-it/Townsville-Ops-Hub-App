@@ -27,6 +27,7 @@ const statusStyles = {
   detected: 'bg-red-500/10 text-red-600 border-red-500/20',
   connected: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
   not_connected: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+  disconnected: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
   requires_authorised_connection: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   manual_monitoring_only: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
   api_unavailable: 'bg-red-500/10 text-red-500 border-red-500/20',

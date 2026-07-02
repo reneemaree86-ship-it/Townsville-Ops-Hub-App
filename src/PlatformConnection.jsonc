@@ -5,102 +5,55 @@
     "business_id": {
       "type": "string"
     },
-    "platform_name": {
-      "type": "string"
+    "platform": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "google",
+        "gumtree",
+        "airtasker",
+        "townsville_noticeboard",
+        "instagram",
+        "stripe",
+        "google_sheets",
+        "google_search_console",
+        "gmail",
+        "github",
+        "other"
+      ]
     },
-    "connection_status": {
+    "status": {
       "type": "string",
       "enum": [
         "connected",
-        "not_connected",
-        "requires_authorised_connection",
-        "manual_monitoring_only",
-        "api_unavailable",
-        "terms_restricted",
-        "fallback_active"
-      ],
-      "default": "not_connected"
+        "disconnected",
+        "error",
+        "pending"
+      ]
     },
-    "connection_type": {
+    "last_checked_at": {
       "type": "string",
-      "enum": [
-        "api",
-        "oauth",
-        "manual",
-        "rss",
-        "webhook",
-        "none"
-      ],
-      "default": "none"
+      "format": "date-time"
+    },
+    "last_successful_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "account_label": {
+      "type": "string"
     },
     "notes": {
       "type": "string"
-    },
-    "last_checked": {
-      "type": "string",
-      "format": "date-time"
     }
   },
-  "required": [
-    "platform_name",
-    "connection_status"
-  ],
-  "rls": {
-    "create": {
-      "$or": [
-        {
-          "data.business_id": {
-            "$in": "{{user.data.managed_business_ids}}"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "read": {
-      "$or": [
-        {
-          "data.business_id": {
-            "$in": "{{user.data.managed_business_ids}}"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "data.business_id": {
-            "$in": "{{user.data.managed_business_ids}}"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "delete": {
-      "$or": [
-        {
-          "data.business_id": {
-            "$in": "{{user.data.managed_business_ids}}"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    }
-  }
+  "required": []
 }
