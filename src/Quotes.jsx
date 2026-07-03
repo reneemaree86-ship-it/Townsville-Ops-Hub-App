@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/base44Client';
 import { Card, CardContent } from '@/card';
@@ -8,59 +8,70 @@ import { Label } from '@/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { Textarea } from '@/textarea';
 import { Checkbox } from '@/checkbox';
+import { Switch } from '@/switch';
+import { Separator } from '@/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/dialog';
 import PageHeader from '@/PageHeader';
 import StatusBadge from '@/StatusBadge';
-import { Plus, Pencil, Trash2, Send, CheckCircle2, XCircle, ArrowRightCircle, FileText } from 'lucide-react';
+import { Plus, Pencil, Trash2, Send, CheckCircle2, XCircle, ArrowRightCircle, FileText, Eye, Download, Receipt } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import invoiceHeaderImg from '@/assets/invoice-logo-small.png';
 
-const SERVICE_TYPES = [
-  { value: 'standard_cleaning', label: 'Standard Cleaning', rate: 75 },
-  { value: 'detailed_refresh', label: 'Detailed Refresh Clean', rate: 85 },
-  { value: 'deep_clean', label: 'Deep Clean', rate: 95 },
-  { value: 'office_commercial', label: 'Office/Commercial', rate: 98 },
-  { value: 'pressure_washing', label: 'Pressure Washing', rate: 90 },
-  { value: 'pre_sale_inspection', label: 'Pre-Sale/Rental Inspection Rescue', rate: 92 },
-  { value: 'airbnb_shortstay', label: 'Airbnb / Short-Stay Clean', rate: null },
-  { value: 'windows_screens', label: 'Windows & Screens', rate: null },
-  { value: 'other', label: 'Other', rate: null },
+const FALLBACK_ADD_ONS = [
+  { name: 'Security Screen (ea)', price: 8 },
+  { name: 'Sliding Glass Door (ea)', price: 25 },
+  { name: 'Oven Clean', price: 85 },
+  { name: 'Rangehood Clean', price: 65 },
+  { name: 'Fridge Internal', price: 55 },
+  { name: 'Fridge/Freezer Combo', price: 85 },
 ];
 
-const ADD_ONS = [
-  { key: 'security_screen', label: 'Security Screen (ea)', price: 8 },
-  { key: 'sliding_door', label: 'Sliding Glass Door (ea)', price: 25 },
-  { key: 'oven', label: 'Oven Clean', price: 85 },
-  { key: 'rangehood', label: 'Rangehood Clean', price: 65 },
-  { key: 'fridge_internal', label: 'Fridge Internal', price: 55 },
-  { key: 'fridge_freezer_combo', label: 'Fridge/Freezer Combo', price: 85 },
+const CONDITION_LEVELS = [
+  { value: 'light', label: 'Light' },
+  { value: 'standard', label: 'Standard' },
+  { value: 'heavy', label: 'Heavy' },
 ];
 
-const QUOTE_STATUS_LABEL = (s) => (s || '').replace(/_/g, ' ');
-
-function serviceLabel(value) {
-  return SERVICE_TYPES.find(s => s.value === value)?.label || value || '—';
-}
-
-function computeRanges(form) {
+function computeTotals(form) {
   const rate = parseFloat(form.hourly_rate) || 0;
   const hMin = parseFloat(form.estimated_hours_min) || 0;
   const hMax = parseFloat(form.estimated_hours_max) || 0;
   const travel = parseFloat(form.travel_fee) || 0;
+  const laundry = parseFloat(form.laundry_linen_fee) || 0;
+  const urgency = parseFloat(form.urgency_fee) || 0;
   const addOnsTotal = (form.add_ons || []).reduce((sum, a) => sum + (parseFloat(a.price) || 0), 0);
+
+  const subtotalMin = rate * hMin + travel + laundry + urgency + addOnsTotal;
+  const subtotalMax = rate * hMax + travel + laundry + urgency + addOnsTotal;
+  const gstMin = form.gst_included ? subtotalMin * 0.1 : 0;
+  const gstMax = form.gst_included ? subtotalMax * 0.1 : 0;
+
   return {
-    total_range_min: +(rate * hMin + travel + addOnsTotal).toFixed(2),
-    total_range_max: +(rate * hMax + travel + addOnsTotal).toFixed(2),
+    subtotal: +subtotalMax.toFixed(2),
+    gst_amount: +gstMax.toFixed(2),
+    total_range_min: +(subtotalMin + gstMin).toFixed(2),
+    total_range_max: +(subtotalMax + gstMax).toFixed(2),
+    total_estimate: +(subtotalMax + gstMax).toFixed(2),
   };
 }
 
 const emptyForm = {
   lead_id: '',
   client_id: '',
-  service_type: 'standard_cleaning',
+  service_id: '',
+  service_type: '',
   hourly_rate: 75,
   estimated_hours_min: 2,
   estimated_hours_max: 3,
+  bedrooms: '',
+  bathrooms: '',
+  condition_level: 'standard',
   add_ons: [],
   travel_fee: 0,
+  laundry_linen_fee: 0,
+  urgency_fee: 0,
+  gst_included: false,
   status: 'draft',
   photos_received: false,
   scope_confirmed: false,
@@ -69,7 +80,7 @@ const emptyForm = {
   expires_at: '',
 };
 
-function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, leads }) {
+function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, leads, services }) {
   const [sourceType, setSourceType] = useState('client');
   const [form, setForm] = useState(existing ? { ...emptyForm, ...existing } : emptyForm);
 
@@ -79,22 +90,32 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
     setSourceType(initial.lead_id && !initial.client_id ? 'lead' : 'client');
   }, [existing, open]);
 
-  const handleServiceChange = (value) => {
-    const svc = SERVICE_TYPES.find(s => s.value === value);
-    setForm(f => ({ ...f, service_type: value, hourly_rate: svc?.rate ?? f.hourly_rate }));
+  const selectedService = services.find(s => s.id === form.service_id);
+  const availableAddOns = selectedService?.add_ons?.length ? selectedService.add_ons : FALLBACK_ADD_ONS;
+
+  const handleServiceChange = (serviceId) => {
+    const svc = services.find(s => s.id === serviceId);
+    setForm(f => ({
+      ...f,
+      service_id: serviceId,
+      service_type: svc?.name || f.service_type,
+      hourly_rate: svc?.pricing_model === 'hourly' ? (svc.hourly_rate ?? f.hourly_rate) : f.hourly_rate,
+      estimated_hours_min: svc?.minimum_hours ?? f.estimated_hours_min,
+      add_ons: [],
+    }));
   };
 
   const toggleAddOn = (addon) => {
     setForm(f => {
-      const exists = (f.add_ons || []).some(a => a.key === addon.key);
+      const exists = (f.add_ons || []).some(a => a.name === addon.name);
       const add_ons = exists
-        ? f.add_ons.filter(a => a.key !== addon.key)
-        : [...(f.add_ons || []), { key: addon.key, label: addon.label, price: addon.price }];
+        ? f.add_ons.filter(a => a.name !== addon.name)
+        : [...(f.add_ons || []), { name: addon.name, price: addon.price }];
       return { ...f, add_ons };
     });
   };
 
-  const { total_range_min, total_range_max } = computeRanges(form);
+  const totals = computeTotals(form);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -105,9 +126,12 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
       hourly_rate: parseFloat(form.hourly_rate) || 0,
       estimated_hours_min: parseFloat(form.estimated_hours_min) || 0,
       estimated_hours_max: parseFloat(form.estimated_hours_max) || 0,
+      bedrooms: form.bedrooms === '' ? null : Number(form.bedrooms),
+      bathrooms: form.bathrooms === '' ? null : Number(form.bathrooms),
       travel_fee: parseFloat(form.travel_fee) || 0,
-      total_range_min,
-      total_range_max,
+      laundry_linen_fee: parseFloat(form.laundry_linen_fee) || 0,
+      urgency_fee: parseFloat(form.urgency_fee) || 0,
+      ...totals,
       expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
     };
     onSave(payload);
@@ -146,18 +170,27 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
                   {leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name} {l.suburb ? `— ${l.suburb}` : ''}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-muted-foreground mt-1">Convert this lead to a Client first if the quote is approved and needs to become a job.</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Convert this lead to a Client first if the quote is approved and needs to become a booking.</p>
             </div>
           )}
+
           <div>
-            <Label className="text-xs">Service Type</Label>
-            <Select value={form.service_type} onValueChange={handleServiceChange}>
-              <SelectTrigger className="mt-1 text-sm"><SelectValue /></SelectTrigger>
+            <Label className="text-xs">Service Type *</Label>
+            <Select value={form.service_id} onValueChange={handleServiceChange}>
+              <SelectTrigger className="mt-1 text-sm"><SelectValue placeholder="Select a service" /></SelectTrigger>
               <SelectContent>
-                {SERVICE_TYPES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}{s.rate ? ` — $${s.rate}/hr` : ''}</SelectItem>)}
+                {services.map(s => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}{s.pricing_model === 'hourly' && s.hourly_rate ? ` — $${s.hourly_rate}/hr` : s.pricing_model === 'fixed_from' ? ` — from $${s.fixed_starting_price}` : ' — manual quote'}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {selectedService?.manual_approval_required && (
+              <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">This service always requires manual approval before confirming.</p>
+            )}
           </div>
+
           <div className="grid grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Hourly Rate ($)</Label>
@@ -165,38 +198,91 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
                 onChange={e => setForm(f => ({ ...f, hourly_rate: e.target.value }))} />
             </div>
             <div>
-              <Label className="text-xs">Est. Hours Min</Label>
+              <Label className="text-xs">Hours (min)</Label>
               <Input type="number" step="0.5" className="mt-1 text-sm" value={form.estimated_hours_min}
                 onChange={e => setForm(f => ({ ...f, estimated_hours_min: e.target.value }))} />
             </div>
             <div>
-              <Label className="text-xs">Est. Hours Max</Label>
+              <Label className="text-xs">Hours (max)</Label>
               <Input type="number" step="0.5" className="mt-1 text-sm" value={form.estimated_hours_max}
                 onChange={e => setForm(f => ({ ...f, estimated_hours_max: e.target.value }))} />
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground -mt-2">2hr minimum applies to Standard Cleaning and Pressure Washing.</p>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Bedrooms</Label>
+              <Input type="number" className="mt-1 text-sm" value={form.bedrooms}
+                onChange={e => setForm(f => ({ ...f, bedrooms: e.target.value }))} />
+            </div>
+            <div>
+              <Label className="text-xs">Bathrooms</Label>
+              <Input type="number" className="mt-1 text-sm" value={form.bathrooms}
+                onChange={e => setForm(f => ({ ...f, bathrooms: e.target.value }))} />
+            </div>
+            <div>
+              <Label className="text-xs">Condition</Label>
+              <Select value={form.condition_level} onValueChange={v => setForm(f => ({ ...f, condition_level: v }))}>
+                <SelectTrigger className="mt-1 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CONDITION_LEVELS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground -mt-2">Use bedrooms/bathrooms/condition as a guide to adjust your hours estimate above — pricing is always by the hour.</p>
+
           <div>
             <Label className="text-xs">Add-ons</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              {ADD_ONS.map(a => (
-                <label key={a.key} className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
-                  <Checkbox checked={(form.add_ons || []).some(x => x.key === a.key)} onCheckedChange={() => toggleAddOn(a)} />
-                  {a.label} (${a.price})
+              {availableAddOns.map(a => (
+                <label key={a.name} className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
+                  <Checkbox checked={(form.add_ons || []).some(x => x.name === a.name)} onCheckedChange={() => toggleAddOn(a)} />
+                  {a.name} (${parseFloat(a.price).toFixed(0)})
                 </label>
               ))}
             </div>
           </div>
-          <div>
-            <Label className="text-xs">Travel Fee ($)</Label>
-            <Input type="number" step="0.01" className="mt-1 text-sm max-w-[140px]" value={form.travel_fee}
-              onChange={e => setForm(f => ({ ...f, travel_fee: e.target.value }))} />
-            <p className="text-[10px] text-muted-foreground mt-1">First 10km free, then $1/km.</p>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Travel Fee ($)</Label>
+              <Input type="number" step="0.01" className="mt-1 text-sm" value={form.travel_fee}
+                onChange={e => setForm(f => ({ ...f, travel_fee: e.target.value }))} />
+            </div>
+            <div>
+              <Label className="text-xs">Laundry/Linen ($)</Label>
+              <Input type="number" step="0.01" className="mt-1 text-sm" value={form.laundry_linen_fee}
+                onChange={e => setForm(f => ({ ...f, laundry_linen_fee: e.target.value }))} />
+            </div>
+            <div>
+              <Label className="text-xs">Urgency Fee ($)</Label>
+              <Input type="number" step="0.01" className="mt-1 text-sm" value={form.urgency_fee}
+                onChange={e => setForm(f => ({ ...f, urgency_fee: e.target.value }))} />
+            </div>
           </div>
-          <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-            <span className="text-xs font-medium">Estimated Total Range</span>
-            <span className="text-sm font-bold text-foreground">${total_range_min.toFixed(2)} – ${total_range_max.toFixed(2)}</span>
+          <p className="text-[10px] text-muted-foreground -mt-2">Travel: first 10km free, then $1/km.</p>
+
+          <div className="flex items-center justify-between p-2 bg-muted rounded-md">
+            <Label className="text-xs font-normal cursor-pointer">Add GST (10%)</Label>
+            <Switch checked={form.gst_included} onCheckedChange={v => setForm(f => ({ ...f, gst_included: v }))} />
           </div>
+
+          <div className="p-3 bg-muted rounded-lg space-y-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Subtotal</span><span>${totals.subtotal.toFixed(2)}</span>
+            </div>
+            {form.gst_included && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>GST (10%)</span><span>${totals.gst_amount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-1 border-t border-border">
+              <span className="text-xs font-medium">Total Estimate</span>
+              <span className="text-sm font-bold text-foreground">${totals.total_range_min.toFixed(2)} – ${totals.total_range_max.toFixed(2)}</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
               <Checkbox checked={form.photos_received} onCheckedChange={v => setForm(f => ({ ...f, photos_received: !!v }))} />
@@ -234,28 +320,201 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
   );
 }
 
+function QuotePreviewModal({ quote, client, lead, onClose, onSent }) {
+  const previewRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
+
+  const recipient = client || lead;
+  const recipientEmail = client?.email || lead?.contact_email;
+
+  const generatePdfFile = async () => {
+    const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 24;
+    const usableWidth = pageWidth - margin * 2;
+    const usableHeight = pageHeight - margin * 2;
+    const naturalWidth = usableWidth;
+    const naturalHeight = (canvas.height * naturalWidth) / canvas.width;
+    let imgWidth = naturalWidth;
+    let imgHeight = naturalHeight;
+    if (imgHeight > usableHeight) {
+      imgHeight = usableHeight;
+      imgWidth = (canvas.width * imgHeight) / canvas.height;
+    }
+    const x = (pageWidth - imgWidth) / 2;
+    const y = margin;
+    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+    const fileName = `Quote-${quote.id.slice(0, 8)}-${(recipient?.name || 'client').replace(/\s+/g, '-')}.pdf`;
+    return { pdf, fileName };
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!previewRef.current) return;
+    setDownloading(true);
+    try {
+      const { pdf, fileName } = await generatePdfFile();
+      pdf.save(fileName);
+    } catch (err) {
+      console.error('PDF generation failed', err);
+      alert('Could not generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleSendToClient = async () => {
+    if (!previewRef.current) return;
+    setSending(true);
+    setSendError(null);
+    try {
+      const { pdf, fileName } = await generatePdfFile();
+      const blob = pdf.output('blob');
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.functions.invoke('sendQuoteEmail', { quote_id: quote.id, pdf_url: file_url });
+      onSent();
+    } catch (err) {
+      console.error('Send quote failed', err);
+      setSendError(err?.message || 'Could not send the quote. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const total = quote.total_estimate ?? quote.total_range_max ?? 0;
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Eye className="w-4 h-4" /> Quote Preview</DialogTitle>
+        </DialogHeader>
+
+        <div ref={previewRef} className="bg-card border border-border rounded-lg overflow-hidden font-sans">
+          <div className="p-6 space-y-5">
+            <div className="flex justify-between items-start">
+              <img src={invoiceHeaderImg} alt="Renee's Cleaning Services" crossOrigin="anonymous" className="h-14 w-auto object-contain" />
+              <div className="text-right">
+                <div className="text-lg font-bold text-primary">QUOTE</div>
+                <p className="text-xs text-muted-foreground mt-1">Date: {new Date().toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                {quote.expires_at && <p className="text-xs text-muted-foreground">Valid until: {new Date(quote.expires_at).toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })}</p>}
+              </div>
+            </div>
+            <Separator />
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Quote For</p>
+              <p className="text-sm font-semibold text-foreground">{recipient?.name || '—'}</p>
+              {recipient?.address && <p className="text-xs text-muted-foreground">{recipient.address}</p>}
+              {recipient?.suburb && <p className="text-xs text-muted-foreground">{recipient.suburb}, QLD</p>}
+              {recipientEmail && <p className="text-xs text-muted-foreground">{recipientEmail}</p>}
+            </div>
+            <Separator />
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 text-xs font-semibold text-muted-foreground uppercase">Description</th>
+                  <th className="text-right py-2 text-xs font-semibold text-muted-foreground uppercase">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                <tr>
+                  <td className="py-2 text-foreground">
+                    {quote.service_type || 'Cleaning Service'} — {quote.estimated_hours_min}–{quote.estimated_hours_max} hrs @ ${parseFloat(quote.hourly_rate || 0).toFixed(2)}/hr
+                  </td>
+                  <td className="py-2 text-right text-foreground">
+                    ${(parseFloat(quote.hourly_rate || 0) * parseFloat(quote.estimated_hours_min || 0)).toFixed(2)} – ${(parseFloat(quote.hourly_rate || 0) * parseFloat(quote.estimated_hours_max || 0)).toFixed(2)}
+                  </td>
+                </tr>
+                {(quote.add_ons || []).map((a, i) => (
+                  <tr key={i}>
+                    <td className="py-2 text-muted-foreground">{a.name}</td>
+                    <td className="py-2 text-right text-muted-foreground">${parseFloat(a.price).toFixed(2)}</td>
+                  </tr>
+                ))}
+                {parseFloat(quote.travel_fee) > 0 && (
+                  <tr><td className="py-2 text-muted-foreground">Travel Fee</td><td className="py-2 text-right text-muted-foreground">${parseFloat(quote.travel_fee).toFixed(2)}</td></tr>
+                )}
+                {parseFloat(quote.laundry_linen_fee) > 0 && (
+                  <tr><td className="py-2 text-muted-foreground">Laundry / Linen</td><td className="py-2 text-right text-muted-foreground">${parseFloat(quote.laundry_linen_fee).toFixed(2)}</td></tr>
+                )}
+                {parseFloat(quote.urgency_fee) > 0 && (
+                  <tr><td className="py-2 text-muted-foreground">Urgency Fee</td><td className="py-2 text-right text-muted-foreground">${parseFloat(quote.urgency_fee).toFixed(2)}</td></tr>
+                )}
+              </tbody>
+            </table>
+            <Separator />
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="text-foreground">${parseFloat(quote.subtotal || 0).toFixed(2)}</span></div>
+              {quote.gst_included && (
+                <div className="flex justify-between"><span className="text-muted-foreground">GST (10%)</span><span className="text-foreground">${parseFloat(quote.gst_amount || 0).toFixed(2)}</span></div>
+              )}
+              <div className="flex justify-between font-bold text-base border-t border-border pt-2 mt-1">
+                <span className="text-foreground">Total Estimate</span>
+                <span className="text-primary">${parseFloat(quote.total_range_min || 0).toFixed(2)} – ${parseFloat(total).toFixed(2)}</span>
+              </div>
+            </div>
+            {quote.caveat && (
+              <>
+                <Separator />
+                <p className="text-xs text-muted-foreground italic">{quote.caveat}</p>
+              </>
+            )}
+          </div>
+        </div>
+
+        {sendError && (
+          <div className="text-xs text-destructive bg-destructive/10 rounded-md p-2">{sendError}</div>
+        )}
+        {!recipientEmail && (
+          <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded-md p-2">
+            No email address on file — add one on the {client ? 'Clients' : 'Leads'} page to send this quote by email. You can still download the PDF.
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-2">
+          <Button onClick={handleDownloadPDF} disabled={downloading} variant="outline" className="flex items-center gap-2">
+            <Download className="w-4 h-4" /> {downloading ? 'Generating...' : 'Download PDF'}
+          </Button>
+          <Button onClick={handleSendToClient} disabled={sending || !recipientEmail} className="flex items-center gap-2">
+            <Send className="w-4 h-4" /> {sending ? 'Sending...' : 'Send Quote to Client'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Quotes() {
   const { activeBusiness } = useOutletContext();
   const [quotes, setQuotes] = useState([]);
   const [clients, setClients] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingQuote, setEditingQuote] = useState(null);
+  const [previewQuote, setPreviewQuote] = useState(null);
   const [saving, setSaving] = useState(false);
   const [converting, setConverting] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [q, c, l] = await Promise.all([
+      const [q, c, l, s] = await Promise.all([
         base44.entities.Quote.list('-created_date', 500),
         base44.entities.Client.list('-created_date', 500),
         base44.entities.Lead.list('-created_date', 200),
+        base44.entities.Service.filter({ status: 'active' }),
       ]);
       setQuotes(q);
       setClients(c);
       setLeads(l);
+      setServices(s);
     } catch (e) {
       console.error(e);
     } finally {
@@ -302,7 +561,7 @@ export default function Quotes() {
 
   const handleConvertToJob = async (quote) => {
     if (!quote.client_id) {
-      alert('This quote is linked to a lead, not a client yet. Edit the quote and select an existing client (create one on the Clients page first if needed) before converting to a job.');
+      alert('This quote is linked to a lead, not a client yet. Edit the quote and select an existing client (create one on the Clients page first if needed) before converting to a booking.');
       return;
     }
     setConverting(quote.id);
@@ -325,7 +584,41 @@ export default function Quotes() {
       });
       await base44.entities.Quote.update(quote.id, { status: 'converted_to_job' });
       await loadData();
-      alert('Job created — go to the Jobs page to schedule it and assign staff.');
+      alert('Booking created — go to the Jobs page to schedule it and assign staff.');
+    } finally {
+      setConverting(null);
+    }
+  };
+
+  const handleConvertToInvoice = async (quote) => {
+    if (!quote.client_id) {
+      alert('This quote is linked to a lead, not a client yet. Edit the quote and select an existing client before converting to an invoice.');
+      return;
+    }
+    setConverting(quote.id);
+    try {
+      const total = quote.total_estimate ?? quote.total_range_max ?? 0;
+      const subtotalExGst = quote.gst_included ? (quote.subtotal ?? total / 1.1) : (quote.subtotal ?? total);
+      const gstAmount = quote.gst_included ? (quote.gst_amount ?? +(subtotalExGst * 0.1).toFixed(2)) : 0;
+      const lineItems = [
+        { description: quote.service_type || 'Cleaning Service', quantity: 1, unit_price: subtotalExGst - (quote.travel_fee || 0), amount: subtotalExGst - (quote.travel_fee || 0) },
+        ...(quote.add_ons || []).map(a => ({ description: a.name, quantity: 1, unit_price: a.price, amount: a.price })),
+      ];
+      await base44.entities.Invoice.create({
+        business_id: quote.business_id || activeBusiness?.id,
+        client_id: quote.client_id,
+        service_type: quote.service_type,
+        travel_fee: quote.travel_fee || 0,
+        amount: +(subtotalExGst).toFixed(2),
+        gst_amount: gstAmount,
+        total_amount: +(subtotalExGst + gstAmount).toFixed(2),
+        status: 'draft',
+        line_items: lineItems,
+        notes: quote.notes || '',
+      });
+      await base44.entities.Quote.update(quote.id, { status: 'converted_to_invoice' });
+      await loadData();
+      alert('Invoice created — go to the Invoices page to review and send it.');
     } finally {
       setConverting(null);
     }
@@ -360,16 +653,19 @@ export default function Quotes() {
                     </span>
                     <StatusBadge status={q.status} />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{serviceLabel(q.service_type)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{q.service_type || '—'}</p>
                   <p className="text-sm font-semibold text-foreground mt-1">
-                    ${parseFloat(q.total_range_min || 0).toFixed(2)} – ${parseFloat(q.total_range_max || 0).toFixed(2)}
+                    ${parseFloat(q.total_range_min || 0).toFixed(2)} – ${parseFloat(q.total_range_max || q.total_estimate || 0).toFixed(2)}
                   </p>
                   {q.expires_at && <p className="text-[10px] text-muted-foreground mt-1">Expires {new Date(q.expires_at).toLocaleDateString('en-AU')}</p>}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setPreviewQuote(q)}>
+                    <FileText className="w-3 h-3 mr-1" /> PDF / Send
+                  </Button>
                   {q.status === 'draft' && (
                     <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setStatus(q, 'sent')}>
-                      <Send className="w-3 h-3 mr-1" /> Send
+                      <Send className="w-3 h-3 mr-1" /> Mark Sent
                     </Button>
                   )}
                   {q.status === 'sent' && (
@@ -383,12 +679,20 @@ export default function Quotes() {
                     </>
                   )}
                   {q.status === 'approved' && (
-                    <Button size="sm" className="h-7 text-[11px]" disabled={converting === q.id} onClick={() => handleConvertToJob(q)}>
-                      <ArrowRightCircle className="w-3 h-3 mr-1" /> {converting === q.id ? 'Converting...' : 'Convert to Job'}
-                    </Button>
+                    <>
+                      <Button size="sm" className="h-7 text-[11px]" disabled={converting === q.id} onClick={() => handleConvertToJob(q)}>
+                        <ArrowRightCircle className="w-3 h-3 mr-1" /> {converting === q.id ? 'Converting...' : 'Convert to Booking'}
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" disabled={converting === q.id} onClick={() => handleConvertToInvoice(q)}>
+                        <Receipt className="w-3 h-3 mr-1" /> Convert to Invoice
+                      </Button>
+                    </>
                   )}
                   {q.status === 'converted_to_job' && (
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-1"><FileText className="w-3 h-3" /> Converted</span>
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1"><FileText className="w-3 h-3" /> Converted to Booking</span>
+                  )}
+                  {q.status === 'converted_to_invoice' && (
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Receipt className="w-3 h-3" /> Converted to Invoice</span>
                   )}
                   <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setEditingQuote(q); setShowForm(true); }}>
                     <Pencil className="w-3.5 h-3.5" />
@@ -411,7 +715,18 @@ export default function Quotes() {
         saving={saving}
         clients={clients}
         leads={leads}
+        services={services}
       />
+
+      {previewQuote && (
+        <QuotePreviewModal
+          quote={previewQuote}
+          client={previewQuote.client_id ? clients.find(c => c.id === previewQuote.client_id) : null}
+          lead={previewQuote.lead_id ? leads.find(l => l.id === previewQuote.lead_id) : null}
+          onClose={() => setPreviewQuote(null)}
+          onSent={async () => { setPreviewQuote(null); await loadData(); }}
+        />
+      )}
     </div>
   );
 }

@@ -38,6 +38,7 @@ import BusinessInbox from '@/BusinessInbox';
 import Invoices from '@/Invoices';
 import Clients from '@/Clients';
 import Quotes from '@/Quotes';
+import ServicesCatalog from '@/ServicesCatalog';
 import Jobs from '@/Jobs';
 
 // Catches the ?code=&state=fb_connect that Facebook Login sends back to our
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/quotes" element={<Quotes />} />
+            <Route path="/services" element={<ServicesCatalog />} />
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/seo" element={<SeoControlCentre />} />
             <Route path="/crawl" element={<WebsiteCrawlCentre />} />

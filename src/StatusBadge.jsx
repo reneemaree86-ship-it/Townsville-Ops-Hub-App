@@ -53,6 +53,7 @@ const statusStyles = {
   rejected: 'bg-red-500/10 text-red-600 border-red-500/20',
   expired: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
   converted_to_job: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
+  converted_to_invoice: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
   scored: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
   contacted: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
   converted: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
