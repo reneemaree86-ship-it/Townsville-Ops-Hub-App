@@ -27,8 +27,9 @@ const FALLBACK_ADD_ONS = [
   { name: 'Fridge/Freezer Combo', price: 85 },
 ];
 
-// Locked formula per Renee (2026-07-03):
-// base 1.5hr + 0.35hr/bedroom + 0.5hr/bathroom + 0.25hr/extra living area
+// Locked formula per Renee (tuned 2026-07-03 -- base adjusted 1.5->0.95 so a
+// standard 3bed/2bath clean lands on exactly 3hrs)
+// base 0.95hr + 0.35hr/bedroom + 0.5hr/bathroom + 0.25hr/extra living area
 // + 0.25hr large kitchen + 0.5hr heavy dust/pet hair/clutter/extra detail
 // then × condition multiplier, floored at the service's minimum_hours,
 // then rounded UP to the nearest 0.5hr.
@@ -49,7 +50,7 @@ function calculateHours({ bedrooms, bathrooms, extra_living_areas, large_kitchen
   const ba = parseFloat(bathrooms) || 0;
   const living = parseFloat(extra_living_areas) || 0;
 
-  let hours = 1.5 + bd * 0.35 + ba * 0.5 + living * 0.25;
+  let hours = 0.95 + bd * 0.35 + ba * 0.5 + living * 0.25;
   if (large_kitchen) hours += 0.25;
   if (extra_detail_needed) hours += 0.5;
 

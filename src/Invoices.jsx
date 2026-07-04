@@ -51,9 +51,16 @@ const PAYMENT_METHOD_LABELS = {
 };
 const formatPaymentMethod = (v) => PAYMENT_METHOD_LABELS[v] || v;
 
-function InvoicePreviewModal({ invoice, client, onClose }) {
+function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId, sending }) {
   const today = new Date();
   const invoiceDate = today.toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' });
+  const handleSendClick = async () => {
+    if (!client?.email) {
+      alert('Client email address is required to send invoice.');
+      return;
+    }
+    await onSendEmail(invoice.id, client.email, client.name);
+  };
   const dueDate = invoice.due_date
     ? new Date(invoice.due_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })
     : 'Upon receipt';
@@ -252,6 +259,14 @@ function InvoicePreviewModal({ invoice, client, onClose }) {
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>Close Preview</Button>
+          <Button 
+            onClick={handleSendClick} 
+            disabled={sending || !client?.email}
+            className="flex items-center gap-2"
+          >
+            <Send className="w-4 h-4" />
+            {sending ? 'Sending...' : 'Send Invoice to Client'}
+          </Button>
           <Button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center gap-2">
             <Download className="w-4 h-4" /> {downloading ? 'Generating...' : 'Download PDF'}
           </Button>
@@ -557,6 +572,7 @@ export default function Invoices() {
   const [prefill, setPrefill] = useState(null);
   const [previewInvoice, setPreviewInvoice] = useState(null);
   const [previewClient, setPreviewClient] = useState(null);
+  const [sendingInvoiceId, setSendingInvoiceId] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -630,6 +646,37 @@ export default function Invoices() {
     loadData();
   };
 
+  const handleSendInvoiceEmail = async (invoiceId, clientEmail, clientName) => {
+    setSendingInvoiceId(invoiceId);
+    try {
+      const response = await fetch('/api/sendInvoiceEmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceId,
+          clientEmail,
+          clientName,
+          businessId: activeBusiness?.id,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert(`✅ Invoice sent to ${clientEmail}`);
+        setInvoices(invoices.map(inv =>
+          inv.id === invoiceId ? { ...inv, status: 'sent', sent_at: new Date().toISOString() } : inv
+        ));
+        setPreviewInvoice(null);
+      } else {
+        alert(`❌ Failed to send: ${data.error}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    } finally {
+      setSendingInvoiceId(null);
+    }
+  };
+
   const openPreview = (inv) => {
     const client = clients.find(c => c.id === inv.client_id);
     setPreviewInvoice(inv);
@@ -648,6 +695,10 @@ export default function Invoices() {
         <InvoicePreviewModal
           invoice={previewInvoice}
           client={previewClient}
+          onClose={() => setPreviewInvoice(null)}
+          onSendEmail={handleSendInvoiceEmail}
+          businessId={activeBusiness?.id}
+          sending={sendingInvoiceId === previewInvoice?.id}
           onClose={() => { setPreviewInvoice(null); setPreviewClient(null); }}
         />
       )}
@@ -665,6 +716,25 @@ export default function Invoices() {
           </Button>
         )}
       </div>
+
+      {/* Payments Status — honest, real state (no fake "connected" claims) */}
+      <Card className="border border-border bg-muted/30">
+        <CardContent className="p-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Online Payments — Setup required</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              There's no online payment collection wired up yet, so invoices can't be paid by card/Stripe
+              automatically. The Stripe key on file is only used for the quarterly income/expense report — it
+              is not connected to invoice payment processing or webhooks. "Mark as Paid" below is a manual
+              record for bank transfer, cash, or card taken in person; it will never be set automatically until
+              a real payment provider is connected.
+            </p>
+          </div>
+          <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 whitespace-nowrap">
+            Setup required
+          </Badge>
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
