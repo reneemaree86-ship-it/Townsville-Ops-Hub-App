@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "townsville-business-hub-app",
+  "name": "townsville-ops-hub-app",
   "account_id": "5028fbc9720e6ffaef885c78aeb89f75",
   "compatibility_date": "2026-06-28",
   "workers_dev": true,
