@@ -33,17 +33,12 @@ export default function Dashboard() {
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-recent'],
-    queryFn: () => base44.entities.NotificationQueue.filter({ read: false }, '-created_date', 10),
+    queryFn: () => base44.entities.NotificationQueue.filter({ status: 'queued' }, '-created_date', 10),
   });
 
-  const { data: followUps = [] } = useQuery({
-    queryKey: ['followups', bid],
-    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid, status: 'pending' }) : [],
-    enabled: !!bid,
-  });
-
-  const hotLeads = leads.filter(l => l.status === 'hot' || l.urgency === 'urgent');
-  const openErrors = errors.filter(e => e.fix_status === 'detected' || e.fix_status === 'manual_action_required');
+  const hotLeads = leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'urgent');
+  const followUps = leads.filter(l => !!l.follow_up_due_at && !['converted','closed','rejected'].includes(l.status));
+  const openErrors = errors.filter(e => e.status === 'open' || e.status === 'investigating');
   const lastAudit = audits[0];
 
   if (!activeBusiness) {
@@ -59,10 +54,10 @@ export default function Dashboard() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Active Leads" value={leads.filter(l => !['won','lost','archived','not_suitable'].includes(l.status)).length} icon={UserSearch} color="text-primary" subtext={`${hotLeads.length} hot`} />
+        <StatCard label="Active Leads" value={leads.filter(l => !['converted','closed','rejected'].includes(l.status)).length} icon={UserSearch} color="text-primary" subtext={`${hotLeads.length} hot`} />
         <StatCard label="SEO Audits" value={audits.length} icon={Search} color="text-blue-500" subtext={lastAudit ? `Last: ${lastAudit.issues_found} issues` : 'None yet'} />
         <StatCard label="Open Errors" value={openErrors.length} icon={AlertTriangle} color="text-red-500" subtext={`${errors.filter(e => e.severity === 'critical').length} critical`} />
-        <StatCard label="Follow-ups Due" value={followUps.length} icon={Clock} color="text-amber-500" subtext={`${followUps.filter(f => new Date(f.due_date) < new Date()).length} overdue`} />
+        <StatCard label="Follow-ups Due" value={followUps.length} icon={Clock} color="text-amber-500" subtext={`${followUps.filter(f => new Date(f.follow_up_due_at) < new Date()).length} overdue`} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
@@ -80,11 +75,11 @@ export default function Dashboard() {
               hotLeads.slice(0, 5).map(lead => (
                 <div key={lead.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/50">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{lead.service_needed}</p>
-                    <p className="text-[10px] text-muted-foreground">{lead.suburb} · {lead.source?.replace(/_/g, ' ')}</p>
+                    <p className="text-xs font-medium truncate">{lead.service_type}</p>
+                    <p className="text-[10px] text-muted-foreground">{lead.suburb} {lead.source_platform ? `· ${lead.source_platform}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-primary">{lead.score}/100</span>
+                    <span className="text-xs font-bold text-primary">{lead.lead_score ?? '-'}/100</span>
                     <StatusBadge status={lead.urgency} />
                   </div>
                 </div>
@@ -102,7 +97,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {notifications.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4 text-center">No unread notifications</p>
+              <p className="text-xs text-muted-foreground py-4 text-center">No queued notifications</p>
             ) : (
               notifications.slice(0, 5).map(n => (
                 <div key={n.id} className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/50">
@@ -111,7 +106,7 @@ export default function Dashboard() {
                     <p className="text-xs font-medium truncate">{n.title}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{n.message}</p>
                   </div>
-                  <StatusBadge status={n.severity} className="flex-shrink-0" />
+                  <StatusBadge status={n.priority} className="flex-shrink-0" />
                 </div>
               ))
             )}
@@ -132,8 +127,8 @@ export default function Dashboard() {
               openErrors.slice(0, 5).map(err => (
                 <div key={err.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/50">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{err.description}</p>
-                    <p className="text-[10px] text-muted-foreground">{err.source || err.error_type?.replace(/_/g, ' ')}</p>
+                    <p className="text-xs font-medium truncate">{err.message}</p>
+                    <p className="text-[10px] text-muted-foreground">{err.component || err.page || err.error_type?.replace(/_/g, ' ')}</p>
                   </div>
                   <StatusBadge status={err.severity} />
                 </div>

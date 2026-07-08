@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/dialog';
 import { Link2, Plus, Trash2, ExternalLink } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function UrlWatchlistPage() {
   const { activeBusiness } = useOutletContext();
@@ -80,7 +81,11 @@ export default function UrlWatchlistPage() {
                     <a href={u.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1 truncate">
                       {u.url} <ExternalLink className="w-2.5 h-2.5" />
                     </a>
-                    <div className="flex gap-2 text-[10px] text-muted-foreground">{u.platform && <span>{u.platform}</span>}<span>{u.check_frequency}</span></div>
+                    <div className="flex gap-2 text-[10px] text-muted-foreground flex-wrap">
+                      {u.platform && <span>{u.platform}</span>}
+                      <span>{u.check_frequency}</span>
+                      <span>{u.last_checked_at ? `Last checked ${formatDistanceToNow(new Date(u.last_checked_at), { addSuffix: true })}` : 'Never checked yet'}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

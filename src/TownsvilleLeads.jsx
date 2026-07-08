@@ -29,7 +29,7 @@ export default function TownsvilleLeads() {
 
   const filtered = leads.filter(l => {
     if (suburbFilter && l.suburb?.toLowerCase() !== suburbFilter.toLowerCase()) return false;
-    if (search && !l.service_needed?.toLowerCase().includes(search.toLowerCase()) && !l.suburb?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !l.service_type?.toLowerCase().includes(search.toLowerCase()) && !l.suburb?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -67,17 +67,16 @@ export default function TownsvilleLeads() {
                   {bySuburb[suburb].map(lead => (
                     <div key={lead.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/50">
                       <div className="min-w-0">
-                        <p className="text-xs font-medium truncate">{lead.service_needed}</p>
+                        <p className="text-xs font-medium truncate">{lead.service_type}</p>
                         <div className="flex gap-2 text-[10px] text-muted-foreground">
-                          <span>{lead.source?.replace(/_/g, ' ')}</span>
-                          {lead.estimated_value > 0 && <span>${lead.estimated_value}</span>}
-                          <span>Score: {lead.score}/100</span>
+                          {lead.source_platform && <span>{lead.source_platform}</span>}
+                          <span>Score: {lead.lead_score ?? '-'}/100</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <StatusBadge status={lead.urgency} />
                         <StatusBadge status={lead.status} />
-                        {lead.status === 'new' && <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => updateMutation.mutate({ id: lead.id, data: { status: 'hot' } })}>Hot</Button>}
+                        {lead.status === 'new' && lead.urgency !== 'urgent' && <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => updateMutation.mutate({ id: lead.id, data: { urgency: 'urgent' } })}>Mark Urgent</Button>}
                       </div>
                     </div>
                   ))}

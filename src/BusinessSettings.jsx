@@ -23,13 +23,17 @@ export default function BusinessSettings() {
     if (activeBusiness) {
       setForm({
         name: activeBusiness.name || '',
-        website_url: activeBusiness.website_url || '',
+        website_1: activeBusiness.website_1 || '',
+        website_2: activeBusiness.website_2 || '',
         pricing_notes: activeBusiness.pricing_notes || '',
         response_tone: activeBusiness.response_tone || '',
         google_business_profile_url: activeBusiness.google_business_profile_url || '',
         facebook_page_url: activeBusiness.facebook_page_url || '',
-        contact_email: activeBusiness.contact_email || '',
-        contact_phone: activeBusiness.contact_phone || '',
+        email: activeBusiness.email || '',
+        phone: activeBusiness.phone || '',
+        service_base_address: activeBusiness.service_base_address || '',
+        service_radius_km: activeBusiness.service_radius_km ?? '',
+        abn: activeBusiness.abn || '',
         services: activeBusiness.services || [],
         suburbs_served: activeBusiness.suburbs_served || [],
       });
@@ -37,7 +41,20 @@ export default function BusinessSettings() {
   }, [activeBusiness]);
 
   const saveMutation = useMutation({
-    mutationFn: () => base44.entities.Business.update(activeBusiness.id, form),
+    mutationFn: () => {
+      // Defensive sanitize: guarantee service_radius_km is always a real number or null,
+      // never a raw string, no matter what state the form got into.
+      let radius = form.service_radius_km;
+      if (radius === '' || radius === undefined) {
+        radius = null;
+      } else if (typeof radius === 'string') {
+        const parsed = Number(radius);
+        radius = Number.isNaN(parsed) ? null : parsed;
+      } else if (typeof radius === 'number' && Number.isNaN(radius)) {
+        radius = null;
+      }
+      return base44.entities.Business.update(activeBusiness.id, { ...form, service_radius_km: radius });
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['businesses'] }); toast.success('Settings saved'); },
   });
 
@@ -58,9 +75,13 @@ export default function BusinessSettings() {
           <CardHeader className="pb-3"><CardTitle className="text-sm">Basic Info</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div><Label className="text-xs">Business Name</Label><Input value={form.name || ''} onChange={e => setForm({...form, name: e.target.value})} className="h-8 text-xs" /></div>
-            <div><Label className="text-xs">Website URL</Label><Input value={form.website_url || ''} onChange={e => setForm({...form, website_url: e.target.value})} className="h-8 text-xs" /></div>
-            <div><Label className="text-xs">Contact Email</Label><Input value={form.contact_email || ''} onChange={e => setForm({...form, contact_email: e.target.value})} className="h-8 text-xs" /></div>
-            <div><Label className="text-xs">Contact Phone</Label><Input value={form.contact_phone || ''} onChange={e => setForm({...form, contact_phone: e.target.value})} className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">Website URL</Label><Input value={form.website_1 || ''} onChange={e => setForm({...form, website_1: e.target.value})} placeholder="e.g. reneescleaningservicestsv.com" className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">Second Website URL (optional)</Label><Input value={form.website_2 || ''} onChange={e => setForm({...form, website_2: e.target.value})} placeholder="e.g. doneforyoutownsville.com" className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">Contact Email</Label><Input value={form.email || ''} onChange={e => setForm({...form, email: e.target.value})} className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">Contact Phone</Label><Input value={form.phone || ''} onChange={e => setForm({...form, phone: e.target.value})} className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">Service Base Address</Label><Input value={form.service_base_address || ''} onChange={e => setForm({...form, service_base_address: e.target.value})} className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">Service Radius (km)</Label><Input type="number" value={form.service_radius_km ?? ''} onChange={e => setForm({...form, service_radius_km: e.target.value === '' ? null : Number(e.target.value)})} className="h-8 text-xs" /></div>
+            <div><Label className="text-xs">ABN</Label><Input value={form.abn || ''} onChange={e => setForm({...form, abn: e.target.value})} className="h-8 text-xs" /></div>
             <div><Label className="text-xs">Google Business Profile URL</Label><Input value={form.google_business_profile_url || ''} onChange={e => setForm({...form, google_business_profile_url: e.target.value})} className="h-8 text-xs" /></div>
             <div><Label className="text-xs">Facebook Page URL</Label><Input value={form.facebook_page_url || ''} onChange={e => setForm({...form, facebook_page_url: e.target.value})} className="h-8 text-xs" /></div>
           </CardContent>

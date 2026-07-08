@@ -16,16 +16,16 @@ export default function Notifications() {
   });
 
   const markReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.NotificationQueue.update(id, { read: true }),
+    mutationFn: (id) => base44.entities.NotificationQueue.update(id, { status: 'sent' }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['notifications-all'] }); qc.invalidateQueries({ queryKey: ['notifications-unread'] }); },
   });
 
   const markAllReadMutation = useMutation({
-    mutationFn: async () => { for (const n of notifications.filter(n => !n.read)) await base44.entities.NotificationQueue.update(n.id, { read: true }); },
+    mutationFn: async () => { for (const n of notifications.filter(n => n.status === 'queued')) await base44.entities.NotificationQueue.update(n.id, { status: 'sent' }); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['notifications-all'] }); qc.invalidateQueries({ queryKey: ['notifications-unread'] }); },
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => n.status === 'queued').length;
 
   return (
     <div className="space-y-6">
@@ -41,19 +41,20 @@ export default function Notifications() {
           <Card><CardContent className="p-8 text-center text-xs text-muted-foreground">No notifications yet.</CardContent></Card>
         ) : (
           notifications.map(n => (
-            <Card key={n.id} className={!n.read ? 'border-primary/30 bg-primary/5' : ''}>
+            <Card key={n.id} className={n.status === 'queued' ? 'border-primary/30 bg-primary/5' : ''}>
               <CardContent className="p-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
-                  <Bell className={`w-4 h-4 mt-0.5 flex-shrink-0 ${!n.read ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Bell className={`w-4 h-4 mt-0.5 flex-shrink-0 ${n.status === 'queued' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div className="min-w-0">
-                    <p className={`text-xs font-medium ${!n.read ? '' : 'text-muted-foreground'}`}>{n.title}</p>
+                    <p className={`text-xs font-medium ${n.status === 'queued' ? '' : 'text-muted-foreground'}`}>{n.title}</p>
                     <p className="text-[10px] text-muted-foreground">{n.message}</p>
                     <p className="text-[9px] text-muted-foreground mt-1">{format(new Date(n.created_date), 'dd MMM yyyy HH:mm')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <StatusBadge status={n.severity} />
-                  {!n.read && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => markReadMutation.mutate(n.id)}><Check className="w-3 h-3" /></Button>}
+                  <StatusBadge status={n.priority} />
+                  <StatusBadge status={n.channel} />
+                  {n.status === 'queued' && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => markReadMutation.mutate(n.id)}><Check className="w-3 h-3" /></Button>}
                 </div>
               </CardContent>
             </Card>

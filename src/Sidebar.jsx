@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Search, Globe, TrendingUp, TestTube,
+  LayoutDashboard, Search, Globe, TrendingUp, TestTube, Receipt,
   UserSearch, MapPin, Megaphone, Plug, AlertTriangle,
-  History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot, Sparkles, FolderOpen
+  History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot, Sparkles, FolderOpen, Inbox, Users, FileSignature, Briefcase, Tag
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { ScrollArea } from '@/scroll-area';
@@ -11,6 +11,12 @@ import { Badge } from '@/badge';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Business Inbox', icon: Inbox, path: '/inbox', featured: true },
+  { label: 'Clients', icon: Users, path: '/clients' },
+  { label: 'Quotes', icon: FileSignature, path: '/quotes' },
+  { label: 'Services Catalog', icon: Tag, path: '/services' },
+  { label: 'Jobs', icon: Briefcase, path: '/jobs' },
+  { label: 'Invoices', icon: Receipt, path: '/invoices' },
   { label: "Renee's Cleaning Services", icon: Sparkles, path: '/renees-cleaning', featured: true },
   { label: 'SEO Control Centre', icon: Search, path: '/seo' },
   { label: 'Website Crawl Centre', icon: Globe, path: '/crawl' },
@@ -28,7 +34,6 @@ const navItems = [
   { label: 'URL Watchlist', icon: Link2, path: '/watchlist' },
   { label: 'Business Settings', icon: Settings, path: '/settings' },
   { label: 'Business Assistant', icon: Bot, path: '/agent' },
-  { label: 'File Centre', icon: FolderOpen, path: '/file-centre' },
 ];
 
 export default function Sidebar({ activeBusiness, onBusinessChange, businesses, unreadCount, onClose }) {
@@ -38,8 +43,8 @@ export default function Sidebar({ activeBusiness, onBusinessChange, businesses, 
     <aside className="h-screen w-64 bg-card border-r border-border flex flex-col">
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div>
-          <h1 className="text-sm font-bold tracking-tight text-primary">BCC</h1>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Business Control Centre</p>
+          <h1 className="text-sm font-bold tracking-tight text-primary">Townsville Ops Hub</h1>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Renee's Cleaning Services</p>
         </div>
         {onClose && (
           <button onClick={onClose} className="lg:hidden p-1 rounded hover:bg-muted">

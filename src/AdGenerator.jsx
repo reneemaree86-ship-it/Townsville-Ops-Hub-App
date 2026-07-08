@@ -10,18 +10,25 @@ import { Input } from '@/input';
 import { Textarea } from '@/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { Label } from '@/label';
-import { Badge } from '@/badge';
-import { Megaphone, Loader2, Copy, Trash2 } from 'lucide-react';
+import { Loader2, Copy, Trash2, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
 
-const platforms = [
+const PLATFORMS = [
   { value: 'google_ads', label: 'Google Ads' },
-  { value: 'facebook_ads', label: 'Facebook Ads' },
-  { value: 'instagram_ads', label: 'Instagram Ads' },
-  { value: 'local_platform', label: 'Local Townsville Platform' },
-  { value: 'marketplace', label: 'Marketplace Listing' },
-  { value: 'google_business_profile', label: 'Google Business Profile' },
-  { value: 'local_service_promo', label: 'Local Service Promo' },
+  { value: 'facebook', label: 'Facebook' },
+  { value: 'facebook_marketplace', label: 'Facebook Marketplace' },
+  { value: 'gumtree', label: 'Gumtree' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'local_seo', label: 'Local SEO / Google Business Profile' },
+  { value: 'other', label: 'Other' },
+];
+
+const CAMPAIGN_TYPES = [
+  { value: 'lead_gen', label: 'Lead Generation' },
+  { value: 'brand_awareness', label: 'Brand Awareness' },
+  { value: 'service_promo', label: 'Service Promo' },
+  { value: 'suburb_targeting', label: 'Suburb Targeting' },
+  { value: 'seasonal', label: 'Seasonal' },
 ];
 
 export default function AdGenerator() {
@@ -29,8 +36,9 @@ export default function AdGenerator() {
   const bid = activeBusiness?.id;
   const qc = useQueryClient();
   const [platform, setPlatform] = useState('google_ads');
-  const [serviceFocus, setServiceFocus] = useState('');
-  const [suburbs, setSuburbs] = useState('');
+  const [campaignType, setCampaignType] = useState('lead_gen');
+  const [serviceType, setServiceType] = useState('');
+  const [suburb, setSuburb] = useState('');
   const [notes, setNotes] = useState('');
 
   const { data: drafts = [] } = useQuery({
@@ -43,11 +51,12 @@ export default function AdGenerator() {
     mutationFn: () => base44.functions.invoke('generateAd', {
       business_id: bid,
       platform,
-      service_targeting: serviceFocus ? serviceFocus.split(',').map(s => s.trim()).filter(Boolean) : [],
-      suburb_targeting: suburbs ? suburbs.split(',').map(s => s.trim()).filter(Boolean) : [],
+      campaign_type: campaignType,
+      service_type: serviceType,
+      suburb,
       notes,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ad-drafts'] }); setServiceFocus(''); setSuburbs(''); setNotes(''); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ad-drafts'] }); setServiceType(''); setSuburb(''); setNotes(''); },
   });
 
   const updateDraftMutation = useMutation({
@@ -74,18 +83,28 @@ export default function AdGenerator() {
               <Label className="text-xs">Platform</Label>
               <Select value={platform} onValueChange={setPlatform}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>{platforms.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{PLATFORMS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label className="text-xs">Service Focus (optional)</Label><Input value={serviceFocus} onChange={e => setServiceFocus(e.target.value)} className="h-8 text-xs" placeholder="e.g. Deep cleaning, Bond cleaning" /></div>
+            <div>
+              <Label className="text-xs">Campaign Type</Label>
+              <Select value={campaignType} onValueChange={setCampaignType}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>{CAMPAIGN_TYPES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
           </div>
-          <div><Label className="text-xs">Target Suburbs (optional)</Label><Input value={suburbs} onChange={e => setSuburbs(e.target.value)} className="h-8 text-xs" placeholder="e.g. Aitkenvale, Douglas, Kirwan" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><Label className="text-xs">Service Focus</Label><Input value={serviceType} onChange={e => setServiceType(e.target.value)} className="h-8 text-xs" placeholder="e.g. Deep cleaning, Bond cleaning" /></div>
+            <div><Label className="text-xs">Target Suburb</Label><Input value={suburb} onChange={e => setSuburb(e.target.value)} className="h-8 text-xs" placeholder="e.g. Kirwan" /></div>
+          </div>
           <div><Label className="text-xs">Additional Notes (optional)</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="text-xs" /></div>
-          <Button onClick={() => generateMutation.mutate()} disabled={generateMutation.isPending || !bid} className="gap-2">
+          <Button onClick={() => generateMutation.mutate()} disabled={generateMutation.isPending || !bid || !serviceType.trim()} className="gap-2">
             {generateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Megaphone className="w-4 h-4" />}
             {generateMutation.isPending ? 'Generating...' : 'Generate Ad Draft'}
           </Button>
           {!bid && <p className="text-xs text-amber-600">Select a business from the sidebar first.</p>}
+          {!serviceType.trim() && <p className="text-[10px] text-muted-foreground">Enter a service focus to generate an ad.</p>}
           {generateMutation.isError && <p className="text-xs text-red-500">Failed: {generateMutation.error?.response?.data?.error || generateMutation.error?.message}</p>}
         </CardContent>
       </Card>
@@ -98,12 +117,13 @@ export default function AdGenerator() {
             <Card key={draft.id}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <CardTitle className="text-sm capitalize">{draft.platform?.replace(/_/g, ' ')}</CardTitle>
                     <StatusBadge status={draft.status} />
+                    {draft.suburb && <span className="text-[10px] text-muted-foreground">{draft.suburb}</span>}
                   </div>
                   <div className="flex gap-1.5">
-                    {draft.status === 'draft' && (
+                    {(draft.status === 'draft' || draft.status === 'needs_approval') && (
                       <Button size="sm" variant="outline" className="h-7 text-[10px] text-emerald-600" onClick={() => updateDraftMutation.mutate({ id: draft.id, data: { status: 'approved' } })}>Approve</Button>
                     )}
                     <Button size="sm" variant="ghost" className="h-7 text-[10px] text-red-500" onClick={() => deleteDraftMutation.mutate(draft.id)}><Trash2 className="w-3 h-3" /></Button>
@@ -111,22 +131,15 @@ export default function AdGenerator() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {draft.headline_options?.length > 0 && (
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-1">Headlines:</p>
-                    {draft.headline_options.map((h, i) => (
-                      <div key={i} className="flex items-center gap-2 mb-1">
-                        <p className="text-xs font-medium flex-1">{h}</p>
-                        <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => { navigator.clipboard.writeText(h); toast.success('Copied'); }}><Copy className="w-3 h-3" /></Button>
-                      </div>
-                    ))}
+                {draft.copy_headline && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-medium flex-1">{draft.copy_headline}</p>
+                    <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => { navigator.clipboard.writeText(draft.copy_headline); toast.success('Copied'); }}><Copy className="w-3 h-3" /></Button>
                   </div>
                 )}
-                {draft.short_description && <div><p className="text-[10px] text-muted-foreground">Short Description:</p><p className="text-xs">{draft.short_description}</p></div>}
-                {draft.long_description && <div><p className="text-[10px] text-muted-foreground">Long Description:</p><p className="text-xs">{draft.long_description}</p></div>}
-                {draft.call_to_action && <div><p className="text-[10px] text-muted-foreground">CTA:</p><p className="text-xs font-medium">{draft.call_to_action}</p></div>}
-                <div className="flex flex-wrap gap-1">{draft.suggested_keywords?.map((k, i) => <Badge key={i} variant="secondary" className="text-[9px]">{k}</Badge>)}</div>
-                {draft.suggested_budget_notes && <div><p className="text-[10px] text-muted-foreground">Budget Notes:</p><p className="text-[10px]">{draft.suggested_budget_notes}</p></div>}
+                {draft.copy_body && <div><p className="text-[10px] text-muted-foreground">Body:</p><p className="text-xs whitespace-pre-wrap">{draft.copy_body}</p></div>}
+                {draft.copy_cta && <div><p className="text-[10px] text-muted-foreground">CTA:</p><p className="text-xs font-medium">{draft.copy_cta}</p></div>}
+                {draft.notes && <div><p className="text-[10px] text-muted-foreground">Notes:</p><p className="text-[10px]">{draft.notes}</p></div>}
               </CardContent>
             </Card>
           ))
