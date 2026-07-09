@@ -10,6 +10,7 @@ import { Textarea } from '@/textarea';
 import { Badge } from '@/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/dialog';
 import { Separator } from '@/separator';
+import { Switch } from '@/switch';
 import { Plus, Eye, Save, Trash2, Send, FileText, ChevronDown, ChevronUp, X, Download, CheckCircle2, Undo2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -22,7 +23,12 @@ const SERVICE_RATES = {
   'Office/Commercial': 98,
   'Pressure Washing': 90,
   'Pre-Sale/Rental Inspection Rescue': 92,
+  'Airbnb Detailed Refresh & Restocking Clean': 85,
 };
+
+// Email sending requires a deployed /api/sendInvoiceEmail backend function.
+// Flip this to true once that route is confirmed deployed and working.
+const EMAIL_SENDING_ENABLED = false;
 
 const ADD_ONS = [
   { label: 'Security Screen', price: 8 },
@@ -55,11 +61,17 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
   const today = new Date();
   const invoiceDate = today.toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' });
   const handleSendClick = async () => {
+    if (!onSendEmail) return;
     if (!client?.email) {
       alert('Client email address is required to send invoice.');
       return;
     }
-    await onSendEmail(invoice.id, client.email, client.name);
+    try {
+      await onSendEmail(invoice.id, client.email, client.name);
+    } catch (err) {
+      console.error('Send invoice email failed', err);
+      alert(`Could not send invoice: ${err?.message || 'Unknown error'}`);
+    }
   };
   const dueDate = invoice.due_date
     ? new Date(invoice.due_date).toLocaleDateString('en-AU', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -67,7 +79,8 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
 
   const lineItems = invoice.line_items || [];
   const subtotal = parseFloat(invoice.amount || 0);
-  const gst = parseFloat(invoice.gst_amount || 0);
+  const gstEnabled = invoice.gst_enabled !== false;
+  const gst = gstEnabled ? parseFloat(invoice.gst_amount || 0) : 0;
   const total = parseFloat(invoice.total_amount || 0);
   const travelFee = parseFloat(invoice.travel_fee || 0);
 
@@ -202,15 +215,17 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
           {/* Totals */}
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal (excl. GST)</span>
+              <span className="text-muted-foreground">{gstEnabled ? 'Subtotal (excl. GST)' : 'Subtotal'}</span>
               <span className="text-foreground">${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">GST (10%)</span>
-              <span className="text-foreground">${gst.toFixed(2)}</span>
-            </div>
+            {gstEnabled && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">GST (10%)</span>
+                <span className="text-foreground">${gst.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-bold text-base border-t border-border pt-2 mt-1">
-              <span className="text-foreground">Total (incl. GST)</span>
+              <span className="text-foreground">{gstEnabled ? 'Total (incl. GST)' : 'Total'}</span>
               <span className="text-primary">${total.toFixed(2)}</span>
             </div>
           </div>
@@ -259,14 +274,17 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>Close Preview</Button>
-          <Button 
-            onClick={handleSendClick} 
-            disabled={sending || !client?.email}
-            className="flex items-center gap-2"
-          >
-            <Send className="w-4 h-4" />
-            {sending ? 'Sending...' : 'Send Invoice to Client'}
-          </Button>
+          {onSendEmail && (
+            <Button
+              onClick={handleSendClick}
+              disabled={sending || !client?.email || !EMAIL_SENDING_ENABLED}
+              title={!EMAIL_SENDING_ENABLED ? 'Email sending setup required' : undefined}
+              className="flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              {sending ? 'Sending...' : (!EMAIL_SENDING_ENABLED ? 'Email sending setup required' : 'Send Invoice to Client')}
+            </Button>
+          )}
           <Button onClick={handleDownloadPDF} disabled={downloading} className="flex items-center gap-2">
             <Download className="w-4 h-4" /> {downloading ? 'Generating...' : 'Download PDF'}
           </Button>
@@ -290,6 +308,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
 
   const [lineItems, setLineItems] = useState(seedLineItems());
   const [travelFee, setTravelFee] = useState(existing?.travel_fee || 0);
+  const [gstEnabled, setGstEnabled] = useState(existing?.gst_enabled !== false);
   const [form, setForm] = useState({
     invoice_number: existing?.invoice_number || `INV-${Date.now().toString().slice(-6)}`,
     client_id: existing?.client_id || '',
@@ -306,7 +325,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
   const lineTotal = (li) => (parseFloat(li.quantity) || 0) * (parseFloat(li.unit_price) || 0);
 
   const subtotal = lineItems.reduce((sum, li) => sum + lineTotal(li), 0) + (parseFloat(travelFee) || 0);
-  const gst = subtotal * 0.1;
+  const gst = gstEnabled ? subtotal * 0.1 : 0;
   const total = subtotal + gst;
 
   const addLineItem = (preset) => {
@@ -353,9 +372,13 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
         line_items: cleanedLineItems,
         travel_fee: parseFloat(travelFee) || 0,
         amount: subtotal.toFixed(2),
+        gst_enabled: gstEnabled,
         gst_amount: gst.toFixed(2),
         total_amount: total.toFixed(2),
       });
+    } catch (err) {
+      console.error('Save invoice failed', err);
+      alert(`Could not save invoice: ${err?.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -366,6 +389,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
     line_items: buildCleanedLineItems(),
     travel_fee: parseFloat(travelFee) || 0,
     amount: subtotal.toFixed(2),
+    gst_enabled: gstEnabled,
     gst_amount: gst.toFixed(2),
     total_amount: total.toFixed(2),
   };
@@ -514,13 +538,19 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
           <p className="text-[10px] text-muted-foreground mt-1">First 10km free, then $1/km</p>
         </div>
         <div>
-          <Label className="text-xs">GST (10%) $</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">GST (10%) $</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">{gstEnabled ? 'Applied' : 'Not applied'}</span>
+              <Switch checked={gstEnabled} onCheckedChange={setGstEnabled} />
+            </div>
+          </div>
           <Input value={gst.toFixed(2)} readOnly className="mt-1 text-sm bg-muted cursor-not-allowed" />
         </div>
       </div>
 
       <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
-        <span className="text-sm font-semibold text-foreground">Total (incl. GST)</span>
+        <span className="text-sm font-semibold text-foreground">{gstEnabled ? 'Total (incl. GST)' : 'Total'}</span>
         <span className="text-lg font-bold text-primary">${total.toFixed(2)}</span>
       </div>
 
@@ -610,43 +640,66 @@ export default function Invoices() {
   };
 
   const handleSave = async (data) => {
-    if (editingInvoice) {
-      await base44.entities.Invoice.update(editingInvoice.id, data);
-    } else {
-      const payload = prefill?.job_id ? { ...data, job_id: prefill.job_id } : data;
-      await base44.entities.Invoice.create(payload);
+    try {
+      if (editingInvoice) {
+        await base44.entities.Invoice.update(editingInvoice.id, data);
+      } else {
+        const payload = prefill?.job_id ? { ...data, job_id: prefill.job_id } : data;
+        await base44.entities.Invoice.create(payload);
+      }
+      setShowForm(false);
+      setEditingInvoice(null);
+      setPrefill(null);
+      await loadData();
+    } catch (err) {
+      console.error('Save invoice failed', err);
+      alert(`Could not save invoice: ${err?.message || 'Unknown error'}. Please try again.`);
     }
-    setShowForm(false);
-    setEditingInvoice(null);
-    setPrefill(null);
-    loadData();
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this invoice?')) {
+    if (!window.confirm('Delete this invoice?')) return;
+    try {
       await base44.entities.Invoice.delete(id);
-      loadData();
+      await loadData();
+    } catch (err) {
+      console.error('Delete invoice failed', err);
+      alert(`Could not delete invoice: ${err?.message || 'Unknown error'}. Please try again.`);
     }
   };
 
   const handleMarkPaid = async (inv) => {
-    await base44.entities.Invoice.update(inv.id, {
-      status: 'paid',
-      paid_at: new Date().toISOString(),
-    });
-    loadData();
+    try {
+      await base44.entities.Invoice.update(inv.id, {
+        status: 'paid',
+        paid_at: new Date().toISOString(),
+      });
+      await loadData();
+    } catch (err) {
+      console.error('Mark paid failed', err);
+      alert(`Could not mark invoice as paid: ${err?.message || 'Unknown error'}. Please try again.`);
+    }
   };
 
   const handleMarkUnpaid = async (inv) => {
     if (!window.confirm('Undo paid status for this invoice?')) return;
-    await base44.entities.Invoice.update(inv.id, {
-      status: 'sent',
-      paid_at: null,
-    });
-    loadData();
+    try {
+      await base44.entities.Invoice.update(inv.id, {
+        status: 'sent',
+        paid_at: null,
+      });
+      await loadData();
+    } catch (err) {
+      console.error('Mark unpaid failed', err);
+      alert(`Could not undo paid status: ${err?.message || 'Unknown error'}. Please try again.`);
+    }
   };
 
   const handleSendInvoiceEmail = async (invoiceId, clientEmail, clientName) => {
+    if (!EMAIL_SENDING_ENABLED) {
+      alert('Email sending setup required — this feature is not connected yet.');
+      return;
+    }
     setSendingInvoiceId(invoiceId);
     try {
       const response = await fetch('/api/sendInvoiceEmail', {
@@ -660,7 +713,19 @@ export default function Invoices() {
         }),
       });
 
-      const data = await response.json();
+      if (response.status === 404) {
+        alert('Email sending setup required — the email service is not deployed yet.');
+        return;
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        alert('Email sending setup required — unexpected response from server.');
+        return;
+      }
+
       if (data.success) {
         alert(`✅ Invoice sent to ${clientEmail}`);
         setInvoices(invoices.map(inv =>
@@ -668,10 +733,11 @@ export default function Invoices() {
         ));
         setPreviewInvoice(null);
       } else {
-        alert(`❌ Failed to send: ${data.error}`);
+        alert(`❌ Failed to send: ${data.error || 'Unknown error'}`);
       }
     } catch (err) {
-      alert(`❌ Error: ${err.message}`);
+      console.error('Send invoice email failed', err);
+      alert(`❌ Error sending invoice: ${err?.message || 'Unknown error'}`);
     } finally {
       setSendingInvoiceId(null);
     }
@@ -695,11 +761,10 @@ export default function Invoices() {
         <InvoicePreviewModal
           invoice={previewInvoice}
           client={previewClient}
-          onClose={() => setPreviewInvoice(null)}
+          onClose={() => { setPreviewInvoice(null); setPreviewClient(null); }}
           onSendEmail={handleSendInvoiceEmail}
           businessId={activeBusiness?.id}
           sending={sendingInvoiceId === previewInvoice?.id}
-          onClose={() => { setPreviewInvoice(null); setPreviewClient(null); }}
         />
       )}
 
