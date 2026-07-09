@@ -10,7 +10,35 @@
       "type": "string",
       "description": "Primary website URL"
     },
-    "services": {
+"second_website_url": {
+  "type": "string",
+  "description": "Second website URL"
+},
+"contact_email": {
+  "type": "string",
+  "description": "Business contact email"
+},
+"contact_phone": {
+  "type": "string",
+  "description": "Business 
+contact phone"
+},
+"service_base_address": {
+  "type": "string",
+  "description": "Service base 
+address"
+},
+"service_radius_km": {
+  "type": "number",
+  "description": "Service radius in 
+kilometres"
+},
+"response_tone": {
+  "type": "string",
+  "description": "Preferred 
+response tone"
+},    
+"services": {
       "type": "array",
       "items": {
         "type": "string"
