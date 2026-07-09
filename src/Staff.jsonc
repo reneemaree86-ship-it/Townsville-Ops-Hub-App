@@ -1,0 +1,54 @@
+{
+  "name": "Staff",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Staff member full name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Staff phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Staff email address"
+    },
+    "role": {
+      "type": "string",
+      "description": "Staff role"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive"],
+      "default": "active",
+      "description": "Staff status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the staff member"
+    }
+  },
+  "required": ["full_name"],
+  "rls": {
+    "create": { "created_by_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
+}

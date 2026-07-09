@@ -1,0 +1,91 @@
+{
+  "name": "Quote",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name (denormalized)"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "Reference to Business"
+    },
+    "lead_id": {
+      "type": "string",
+      "description": "Reference to Lead if converted from lead"
+    },
+    "service_type": {
+      "type": "string",
+      "description": "Type of service"
+    },
+    "description": {
+      "type": "string",
+      "description": "Quote description"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Line items on the quote"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Subtotal amount"
+    },
+    "gst_amount": {
+      "type": "number",
+      "description": "GST amount"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount including GST"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "sent", "accepted", "declined", "converted_to_job", "converted_to_invoice"],
+      "default": "draft",
+      "description": "Quote status"
+    },
+    "date_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date quote was sent"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quote validity date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Quote notes"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": { "created_by_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
+}

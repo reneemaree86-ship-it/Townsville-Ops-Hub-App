@@ -1,0 +1,115 @@
+{
+  "name": "Job",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name (denormalized)"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "Reference to Business"
+    },
+    "quote_id": {
+      "type": "string",
+      "description": "Reference to Quote if converted from quote"
+    },
+    "service_type": {
+      "type": "string",
+      "description": "Type of service"
+    },
+    "description": {
+      "type": "string",
+      "description": "Job description"
+    },
+    "scheduled_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled start time"
+    },
+    "scheduled_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled end time"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Estimated duration in hours"
+    },
+    "address": {
+      "type": "string",
+      "description": "Job address"
+    },
+    "suburb": {
+      "type": "string",
+      "description": "Job suburb"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["scheduled", "in_progress", "completed", "cancelled"],
+      "default": "scheduled",
+      "description": "Job status"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Job amount"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": ["unpaid", "paid"],
+      "default": "unpaid",
+      "description": "Payment status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Job notes"
+    },
+    "staff_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Assigned staff member IDs"
+    },
+    "before_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Before photos URLs"
+    },
+    "after_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "After photos URLs"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": { "created_by_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
+}

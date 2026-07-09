@@ -1,0 +1,64 @@
+{
+  "name": "Service",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Service name"
+    },
+    "category": {
+      "type": "string",
+      "description": "Service category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Service description"
+    },
+    "rate": {
+      "type": "number",
+      "description": "Service rate"
+    },
+    "rate_type": {
+      "type": "string",
+      "enum": ["hourly", "flat"],
+      "default": "hourly",
+      "description": "Rate type"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Estimated duration in hours"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive"],
+      "default": "active",
+      "description": "Service status"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "Reference to Business"
+    }
+  },
+  "required": ["name"],
+  "rls": {
+    "create": { "created_by_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
+}

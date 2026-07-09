@@ -1,0 +1,115 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name (denormalized)"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "Reference to Business"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Invoice number"
+    },
+    "service_type": {
+      "type": "string",
+      "description": "Type of service rendered"
+    },
+    "description": {
+      "type": "string",
+      "description": "Invoice description"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Line items on the invoice"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Subtotal amount"
+    },
+    "gst_amount": {
+      "type": "number",
+      "description": "GST amount"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount including GST"
+    },
+    "gst_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether GST is applied"
+    },
+    "travel_fee": {
+      "type": "number",
+      "description": "Travel fee charged"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "sent", "paid", "overdue"],
+      "default": "draft",
+      "description": "Invoice status"
+    },
+    "date_issued": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date invoice was issued"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Invoice due date"
+    },
+    "date_paid": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date invoice was paid"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of payment"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": ["bank_transfer", "cash", "card", "stripe", "dva_billing", "ndis_billing", "other"],
+      "description": "Payment method used"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Invoice notes"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": { "created_by_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
+}
