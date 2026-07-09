@@ -270,6 +270,12 @@ export default function Jobs() {
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  if (!activeBusiness) {
+    return <div className="p-8 text-center text-sm text-muted-foreground">Loading business…</div>;
+  }
 
   const loadData = async () => {
     setLoading(true);
@@ -284,6 +290,7 @@ export default function Jobs() {
       setStaff(s);
     } catch (e) {
       console.error(e);
+      setErrorMsg('Could not load jobs, clients or staff. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -294,8 +301,11 @@ export default function Jobs() {
   const clientName = (id) => clients.find(c => c.id === id)?.name || 'Unknown client';
   const staffNames = (ids) => (ids || []).map(id => staff.find(s => s.id === id)?.name).filter(Boolean).join(', ');
 
+  const filteredJobs = statusFilter === 'all' ? jobs : jobs.filter(j => j.status === statusFilter);
+
   const handleSave = async (data) => {
     setSaving(true);
+    setErrorMsg(null);
     try {
       const payload = { ...data, business_id: activeBusiness?.id || data.business_id };
       if (editingJob) {
@@ -306,6 +316,9 @@ export default function Jobs() {
       setShowForm(false);
       setEditingJob(null);
       await loadData();
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e?.message || 'Could not save the job. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -313,8 +326,14 @@ export default function Jobs() {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this job? This cannot be undone.')) {
-      await base44.entities.Job.delete(id);
-      await loadData();
+      setErrorMsg(null);
+      try {
+        await base44.entities.Job.delete(id);
+        await loadData();
+      } catch (e) {
+        console.error(e);
+        setErrorMsg(e?.message || 'Could not delete the job. Please try again.');
+      }
     }
   };
 
@@ -322,8 +341,14 @@ export default function Jobs() {
     const patch = { status };
     if (status === 'in_progress') patch.actual_start = new Date().toISOString();
     if (status === 'completed') patch.actual_end = new Date().toISOString();
-    await base44.entities.Job.update(job.id, patch);
-    await loadData();
+    setErrorMsg(null);
+    try {
+      await base44.entities.Job.update(job.id, patch);
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e?.message || 'Could not update the job status. Please try again.');
+    }
   };
 
   const handleCreateInvoice = (job) => {
@@ -343,13 +368,36 @@ export default function Jobs() {
         business={activeBusiness}
       />
 
+      {errorMsg && (
+        <div className="text-xs text-destructive bg-destructive/10 rounded-md p-3 flex items-center justify-between">
+          <span>{errorMsg}</span>
+          <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => setErrorMsg(null)}>Dismiss</Button>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <Label className="text-xs whitespace-nowrap">Filter by status:</Label>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="in_progress">In progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="rescheduled">Rescheduled</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading jobs...</p>
-      ) : jobs.length === 0 ? (
-        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No jobs yet. Create one, or approve a Quote and convert it to a job.</CardContent></Card>
+      ) : filteredJobs.length === 0 ? (
+        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">{jobs.length === 0 ? 'No jobs yet. Create one, or approve a Quote and convert it to a job.' : 'No jobs match this filter.'}</CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {jobs.map(j => (
+          {filteredJobs.map(j => (
             <Card key={j.id}>
               <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="min-w-0">

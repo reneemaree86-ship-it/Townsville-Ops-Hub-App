@@ -597,6 +597,11 @@ export default function Quotes() {
   const [previewQuote, setPreviewQuote] = useState(null);
   const [saving, setSaving] = useState(false);
   const [converting, setConverting] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  if (!activeBusiness) {
+    return <div className="p-8 text-center text-sm text-muted-foreground">Loading business…</div>;
+  }
 
   const loadData = async () => {
     setLoading(true);
@@ -613,6 +618,7 @@ export default function Quotes() {
       setServices(s);
     } catch (e) {
       console.error(e);
+      setErrorMsg('Could not load quotes, clients, leads or services. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -625,6 +631,7 @@ export default function Quotes() {
 
   const handleSave = async (data) => {
     setSaving(true);
+    setErrorMsg(null);
     try {
       const payload = { ...data, business_id: activeBusiness?.id || data.business_id };
       if (editingQuote) {
@@ -635,6 +642,9 @@ export default function Quotes() {
       setShowForm(false);
       setEditingQuote(null);
       await loadData();
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e?.message || 'Could not save the quote. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -642,8 +652,14 @@ export default function Quotes() {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this quote? This cannot be undone.')) {
-      await base44.entities.Quote.delete(id);
-      await loadData();
+      setErrorMsg(null);
+      try {
+        await base44.entities.Quote.delete(id);
+        await loadData();
+      } catch (e) {
+        console.error(e);
+        setErrorMsg(e?.message || 'Could not delete the quote. Please try again.');
+      }
     }
   };
 
@@ -651,8 +667,14 @@ export default function Quotes() {
     const patch = { status };
     if (status === 'sent') patch.sent_at = new Date().toISOString();
     if (status === 'approved') patch.approved_at = new Date().toISOString();
-    await base44.entities.Quote.update(quote.id, patch);
-    await loadData();
+    setErrorMsg(null);
+    try {
+      await base44.entities.Quote.update(quote.id, patch);
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e?.message || 'Could not update the quote status. Please try again.');
+    }
   };
 
   const handleConvertToJob = async (quote) => {
@@ -661,10 +683,11 @@ export default function Quotes() {
       return;
     }
     setConverting(quote.id);
+    setErrorMsg(null);
     try {
       const client = clients.find(c => c.id === quote.client_id);
       await base44.entities.Job.create({
-        business_id: quote.business_id || activeBusiness?.id,
+        business_id: quote.business_id || activeBusiness.id,
         client_id: quote.client_id,
         service_type: quote.service_type,
         address: client?.address || '',
@@ -681,6 +704,9 @@ export default function Quotes() {
       await base44.entities.Quote.update(quote.id, { status: 'converted_to_job' });
       await loadData();
       alert('Booking created — go to the Jobs page to schedule it and assign staff.');
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e?.message || 'Could not convert the quote to a booking. Please try again.');
     } finally {
       setConverting(null);
     }
@@ -692,6 +718,7 @@ export default function Quotes() {
       return;
     }
     setConverting(quote.id);
+    setErrorMsg(null);
     try {
       const total = quote.total_estimate ?? quote.total_range_max ?? 0;
       const subtotalExGst = quote.gst_included ? (quote.subtotal ?? total / 1.1) : (quote.subtotal ?? total);
@@ -715,6 +742,9 @@ export default function Quotes() {
       await base44.entities.Quote.update(quote.id, { status: 'converted_to_invoice' });
       await loadData();
       alert('Invoice created — go to the Invoices page to review and send it.');
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(e?.message || 'Could not convert the quote to an invoice. Please try again.');
     } finally {
       setConverting(null);
     }
@@ -732,6 +762,13 @@ export default function Quotes() {
         }
         business={activeBusiness}
       />
+
+      {errorMsg && (
+        <div className="text-xs text-destructive bg-destructive/10 rounded-md p-3 flex items-center justify-between">
+          <span>{errorMsg}</span>
+          <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => setErrorMsg(null)}>Dismiss</Button>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading quotes...</p>
