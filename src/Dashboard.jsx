@@ -7,11 +7,11 @@ import StatCard from '@/StatCard';
 import StatusBadge from '@/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
 import { Button } from '@/button';
-import { Search, UserSearch, AlertTriangle, Bell, Clock, TestTube, TrendingUp, ArrowRight, Flame } from 'lucide-react';
+import { Search, UserSearch, AlertTriangle, Bell, Clock, TestTube, TrendingUp, ArrowRight, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
-  const { activeBusiness } = useOutletContext();
+  const { activeBusiness, businesses } = useOutletContext();
   const bid = activeBusiness?.id;
 
   const { data: leads = [] } = useQuery({
@@ -36,14 +36,35 @@ export default function Dashboard() {
     queryFn: () => base44.entities.NotificationQueue.filter({ status: 'queued' }, '-created_date', 10),
   });
 
+  // No businesses at all — show a useful empty state, not a perpetual "loading"
+  if (!activeBusiness && (!businesses || businesses.length === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center space-y-3">
+        <Building2 className="w-12 h-12 text-muted-foreground/50" />
+        <div>
+          <p className="text-sm font-medium text-foreground">No businesses yet</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Create your first business in Business Settings to get started.
+          </p>
+        </div>
+        <Link to="/settings">
+          <Button variant="outline" size="sm" className="gap-1">
+            <Building2 className="w-3.5 h-3.5" /> Create a Business
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // Businesses exist but none selected yet (loading)
+  if (!activeBusiness) {
+    return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading businesses...</div>;
+  }
+
   const hotLeads = leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'urgent');
   const followUps = leads.filter(l => !!l.follow_up_due_at && !['converted','closed','rejected'].includes(l.status));
   const openErrors = errors.filter(e => e.status === 'open' || e.status === 'investigating');
   const lastAudit = audits[0];
-
-  if (!activeBusiness) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading businesses...</div>;
-  }
 
   return (
     <div className="space-y-6">
