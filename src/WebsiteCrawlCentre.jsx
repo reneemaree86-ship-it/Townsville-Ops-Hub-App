@@ -6,7 +6,7 @@ import PageHeader from '@/PageHeader';
 import StatusBadge from '@/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
 import { Button } from '@/button';
-import { Globe, Loader2, ExternalLink } from 'lucide-react';
+import { Globe, Loader2, ExternalLink, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function WebsiteCrawlCentre() {
@@ -19,36 +19,64 @@ export default function WebsiteCrawlCentre() {
   });
 
   const crawlMutation = useMutation({
-    mutationFn: ({ business_id, website_url }) => base44.functions.invoke('runSeoAudit', { business_id, website_url }),
+    mutationFn: ({ business_id, website_url }) =>
+      base44.functions.invoke('runSeoAudit', { business_id, website_url }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['all-audits'] }),
   });
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Website Crawl Centre" description="Crawl and monitor both websites" />
+      <PageHeader title="Website Crawl Centre" description="Crawl and monitor all business websites" />
       <div className="grid gap-4">
         {(businesses || []).map(biz => {
+          const websiteUrl = biz.website_url;
+          const canCrawl = !!biz.id && !!websiteUrl;
           const bizAudits = allAudits.filter(a => a.business_id === biz.id);
           const latest = bizAudits[0];
           const isCrawling = crawlMutation.isPending && crawlMutation.variables?.business_id === biz.id;
+
           return (
             <Card key={biz.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-sm">{biz.name}</CardTitle>
-                    <a href={`https://${biz.website_1}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1 mt-0.5">
-                      {biz.website_1} <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
+                    {websiteUrl ? (
+                      <a
+                        href={websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-primary hover:underline flex items-center gap-1 mt-0.5"
+                      >
+                        {websiteUrl} <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">No website URL set</p>
+                    )}
                   </div>
-                  <Button size="sm" className="gap-1.5 text-xs" disabled={isCrawling}
-                    onClick={() => crawlMutation.mutate({ business_id: biz.id, website_url: biz.website_1 })}>
+                  <Button
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    disabled={isCrawling || !canCrawl}
+                    title={!canCrawl ? 'Add and save a Website URL in Business Settings first' : undefined}
+                    onClick={() => crawlMutation.mutate({ business_id: biz.id, website_url: websiteUrl })}
+                  >
                     {isCrawling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
                     {isCrawling ? 'Crawling...' : 'Crawl Now'}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
+                {/* No website URL warning */}
+                {!websiteUrl && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/30 mb-3">
+                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-700">
+                      Add and save a Website URL in <strong>Business Settings</strong> first before crawling.
+                    </p>
+                  </div>
+                )}
+
                 {latest ? (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -82,7 +110,9 @@ export default function WebsiteCrawlCentre() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground text-center py-4">No crawls yet. Click "Crawl Now" to start.</p>
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    {canCrawl ? 'No crawls yet. Click "Crawl Now" to start.' : 'Set a Website URL in Business Settings to enable crawling.'}
+                  </p>
                 )}
               </CardContent>
             </Card>

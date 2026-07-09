@@ -10,35 +10,35 @@
       "type": "string",
       "description": "Primary website URL"
     },
-"second_website_url": {
-  "type": "string",
-  "description": "Second website URL"
-},
-"contact_email": {
-  "type": "string",
-  "description": "Business contact email"
-},
-"contact_phone": {
-  "type": "string",
-  "description": "Business 
-contact phone"
-},
-"service_base_address": {
-  "type": "string",
-  "description": "Service base 
-address"
-},
-"service_radius_km": {
-  "type": "number",
-  "description": "Service radius in 
-kilometres"
-},
-"response_tone": {
-  "type": "string",
-  "description": "Preferred 
-response tone"
-},    
-"services": {
+    "second_website_url": {
+      "type": "string",
+      "description": "Second website URL (optional)"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Business contact email"
+    },
+    "contact_phone": {
+      "type": "string",
+      "description": "Business contact phone"
+    },
+    "service_base_address": {
+      "type": "string",
+      "description": "Service base address"
+    },
+    "service_radius_km": {
+      "type": "number",
+      "description": "Service radius in kilometres"
+    },
+    "abn": {
+      "type": "string",
+      "description": "Australian Business Number"
+    },
+    "response_tone": {
+      "type": "string",
+      "description": "Preferred tone for AI-generated responses"
+    },
+    "services": {
       "type": "array",
       "items": {
         "type": "string"
@@ -56,29 +56,17 @@ response tone"
       "type": "string",
       "description": "Pricing information and notes"
     },
-    "response_tone": {
-      "type": "string",
-      "description": "Tone for AI-generated responses"
-    },
     "google_business_profile_url": {
-      "type": "string"
+      "type": "string",
+      "description": "Google Business Profile URL"
     },
     "facebook_page_url": {
-      "type": "string"
-    },
-    "contact_email": {
-      "type": "string"
-    },
-    "contact_phone": {
-      "type": "string"
+      "type": "string",
+      "description": "Facebook Page URL"
     },
     "status": {
       "type": "string",
-      "enum": [
-        "active",
-        "paused",
-        "archived"
-      ],
+      "enum": ["active", "paused", "archived"],
       "default": "active"
     },
     "description": {
@@ -87,48 +75,25 @@ response tone"
       "description": "Optional description of the business"
     }
   },
-  "required": [
-    "name",
-    "website_url"
-  ],
+  "required": ["name", "website_url"],
   "rls": {
-    "create": {
-      "created_by_id": "{{user.id}}"
-    },
+    "create": { "created_by_id": "{{user.id}}" },
     "read": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
       ]
     },
     "update": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
       ]
     },
     "delete": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
       ]
     }
   }

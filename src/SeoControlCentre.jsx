@@ -9,12 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/card';
 import { Button } from '@/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
-import { Search, Loader2, AlertTriangle, Info } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, Info, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function SeoControlCentre() {
   const { activeBusiness } = useOutletContext();
   const bid = activeBusiness?.id;
+  const websiteUrl = activeBusiness?.website_url;
   const qc = useQueryClient();
   const [severityFilter, setSeverityFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -32,7 +33,7 @@ export default function SeoControlCentre() {
   });
 
   const auditMutation = useMutation({
-    mutationFn: () => base44.functions.invoke('runSeoAudit', { business_id: bid, website_url: activeBusiness.website_1 }),
+    mutationFn: () => base44.functions.invoke('runSeoAudit', { business_id: bid, website_url: websiteUrl }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['audits'] });
       qc.invalidateQueries({ queryKey: ['seo-issues'] });
@@ -55,27 +56,56 @@ export default function SeoControlCentre() {
   const openCount = issues.filter(i => i.fix_status === 'open').length;
   const lastAudit = audits[0];
 
+  const canRunAudit = !!bid && !!websiteUrl;
+
   if (!activeBusiness) return null;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="SEO Control Centre"
-        description={`Audit and monitor SEO for ${activeBusiness.website_1 || 'this business'}`}
+        description={`Audit and monitor SEO for ${websiteUrl || activeBusiness.name}`}
         business={activeBusiness}
         actions={
-          <Button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="gap-2">
+          <Button
+            onClick={() => auditMutation.mutate()}
+            disabled={auditMutation.isPending || !canRunAudit}
+            className="gap-2"
+            title={!canRunAudit ? 'Add a Website URL in Business Settings first' : undefined}
+          >
             {auditMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             {auditMutation.isPending ? 'Crawling...' : 'Run SEO Audit'}
           </Button>
         }
       />
 
-      {auditMutation.isError && <Card className="border-red-500/30 bg-red-500/5"><CardContent className="p-3"><p className="text-xs text-red-600">Audit failed: {auditMutation.error?.message}</p></CardContent></Card>}
+      {/* Missing website_url warning */}
+      {!websiteUrl && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-amber-700">
+              Add and save a Website URL in <strong>Business Settings</strong> first before running an SEO audit.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {auditMutation.isError && (
+        <Card className="border-red-500/30 bg-red-500/5">
+          <CardContent className="p-3">
+            <p className="text-xs text-red-600">Audit failed: {auditMutation.error?.message}</p>
+          </CardContent>
+        </Card>
+      )}
       {auditMutation.isSuccess && (
-        <Card className="border-emerald-500/30 bg-emerald-500/5"><CardContent className="p-3">
-          <p className="text-xs text-emerald-600">Audit complete: {auditMutation.data?.data?.issues_found ?? issues.length} issue(s) found on {auditMutation.data?.data?.website}</p>
-        </CardContent></Card>
+        <Card className="border-emerald-500/30 bg-emerald-500/5">
+          <CardContent className="p-3">
+            <p className="text-xs text-emerald-600">
+              Audit complete: {auditMutation.data?.data?.issues_found ?? issues.length} issue(s) found on {auditMutation.data?.data?.website || websiteUrl}
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -92,11 +122,14 @@ export default function SeoControlCentre() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div><span className="text-muted-foreground">Status:</span> <StatusBadge status={lastAudit.status} /></div>
               <div><span className="text-muted-foreground">Issues:</span> <span className="font-medium ml-1">{lastAudit.issues_found ?? 0}</span></div>
-              <div><span className="text-muted-foreground">Duration:</span> <span className="font-medium ml-1">
-                {lastAudit.scan_started_at && lastAudit.scan_completed_at
-                  ? `${Math.max(1, Math.round((new Date(lastAudit.scan_completed_at) - new Date(lastAudit.scan_started_at)) / 1000))}s`
-                  : '—'}
-              </span></div>
+              <div>
+                <span className="text-muted-foreground">Duration:</span>
+                <span className="font-medium ml-1">
+                  {lastAudit.scan_started_at && lastAudit.scan_completed_at
+                    ? `${Math.max(1, Math.round((new Date(lastAudit.scan_completed_at) - new Date(lastAudit.scan_started_at)) / 1000))}s`
+                    : '—'}
+                </span>
+              </div>
               <div><span className="text-muted-foreground">Date:</span> <span className="font-medium ml-1">{format(new Date(lastAudit.created_date), 'dd MMM yyyy HH:mm')}</span></div>
             </div>
             {lastAudit.status === 'failed' && lastAudit.summary && (
@@ -154,9 +187,11 @@ export default function SeoControlCentre() {
               </TableHeader>
               <TableBody>
                 {filteredIssues.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-xs text-muted-foreground py-8">
-                    {issues.length === 0 ? 'No issues found yet. Run an SEO audit to start.' : 'No issues match filters.'}
-                  </TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-xs text-muted-foreground py-8">
+                      {issues.length === 0 ? 'No issues found yet. Run an SEO audit to start.' : 'No issues match filters.'}
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   filteredIssues.map(issue => (
                     <TableRow key={issue.id}>
@@ -171,14 +206,18 @@ export default function SeoControlCentre() {
                       <TableCell><StatusBadge status={issue.fix_status} /></TableCell>
                       <TableCell>
                         {issue.fix_status === 'open' && (
-                          <Button variant="outline" size="sm" className="h-6 text-[10px]"
-                            onClick={() => updateIssueMutation.mutate({ id: issue.id, data: { fix_status: 'manual_action_required' } })}>
+                          <Button
+                            variant="outline" size="sm" className="h-6 text-[10px]"
+                            onClick={() => updateIssueMutation.mutate({ id: issue.id, data: { fix_status: 'manual_action_required' } })}
+                          >
                             Mark Task
                           </Button>
                         )}
                         {issue.fix_status === 'manual_action_required' && (
-                          <Button variant="outline" size="sm" className="h-6 text-[10px] text-emerald-600"
-                            onClick={() => updateIssueMutation.mutate({ id: issue.id, data: { fix_status: 'fixed', date_fixed: new Date().toISOString() } })}>
+                          <Button
+                            variant="outline" size="sm" className="h-6 text-[10px] text-emerald-600"
+                            onClick={() => updateIssueMutation.mutate({ id: issue.id, data: { fix_status: 'fixed', date_fixed: new Date().toISOString() } })}
+                          >
                             Mark Fixed
                           </Button>
                         )}
