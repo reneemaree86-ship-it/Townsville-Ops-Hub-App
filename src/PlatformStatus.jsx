@@ -78,24 +78,27 @@ function FacebookConnectCard({ bid }) {
       redirect_uri: FB_REDIRECT_URI,
     }),
     onSuccess: (res) => {
-      const pages = res?.data?.pages || res?.pages || [];
+      // Base44 SDK: axios response body is in res.data; our function returns { pages: [...] }
+      const pages = res?.data?.pages ?? res?.pages ?? [];
       if (!pages.length) {
-        toast.error('No Facebook Pages found on this account. Make sure you are an admin of the Renee\'s Cleaning Services Page.');
+        toast.error("No Facebook Pages found. Make sure you are an admin of the Renee's Cleaning Services Facebook Page.");
         return;
       }
       setPagePicker({ open: true, pages });
     },
     onError: (err) => {
-      toast.error('Facebook connection failed: ' + (err?.message || 'Unknown error'));
+      // Extract the real error from the axios response body (Base44 SDK wraps it in err.response.data)
+      const detail = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Unknown error';
+      toast.error('Facebook connection failed: ' + detail);
     },
   });
 
   useEffect(() => {
     const pendingCode = sessionStorage.getItem('fb_oauth_code');
-    if (pendingCode) {
-      sessionStorage.removeItem('fb_oauth_code');
-      exchangeMutation.mutate(pendingCode);
-    }
+    if (!pendingCode) return;
+    // Guard: remove BEFORE calling mutate so a double-fire (React StrictMode) is a no-op
+    sessionStorage.removeItem('fb_oauth_code');
+    exchangeMutation.mutate(pendingCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -112,7 +115,8 @@ function FacebookConnectCard({ bid }) {
       qc.invalidateQueries({ queryKey: ['platform-connections'] });
     },
     onError: (err) => {
-      toast.error('Failed to connect Page: ' + (err?.message || 'Unknown error'));
+      const detail = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Unknown error';
+      toast.error('Failed to connect Page: ' + detail);
     },
   });
 
