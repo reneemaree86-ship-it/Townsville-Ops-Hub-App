@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/base44Client';
+import { base44, base44Agent } from '@/base44Client';
 import PageHeader from '@/PageHeader';
 import StatusBadge from '@/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/card';
@@ -72,7 +72,7 @@ function FacebookConnectCard({ bid }) {
   });
 
   const exchangeMutation = useMutation({
-    mutationFn: (code) => base44.functions.invoke('facebookOAuthExchange', {
+    mutationFn: (code) => base44Agent.functions.invoke('facebookOAuthExchange', {
       code,
       redirect_uri: FB_REDIRECT_URI,
     }),
@@ -102,12 +102,38 @@ function FacebookConnectCard({ bid }) {
   }, []);
 
   const connectPageMutation = useMutation({
-    mutationFn: (page) => base44.functions.invoke('facebookConnectPage', {
-      page_id: page.id,
-      page_name: page.name,
-      page_access_token: page.access_token,
-      business_id: bid,
-    }),
+    mutationFn: async (page) => {
+      // Step 1: Use the agent app function to verify token + subscribe FB webhooks
+      const result = await base44Agent.functions.invoke('facebookConnectPage', {
+        page_id: page.id,
+        page_name: page.name,
+        page_access_token: page.access_token,
+        business_id: bid,
+      });
+      const res = result?.data ?? result;
+
+      // Step 2: Write the PlatformConnection record to THIS app's (Ops Hub) database
+      const connectionData = {
+        business_id: bid || null,
+        platform: 'facebook',
+        status: 'connected',
+        external_id: page.id,
+        account_label: page.name,
+        access_token: page.access_token,
+        scopes: [],
+        notes: `Connected ${new Date().toISOString()}. Webhooks: ${res?.webhooks_subscribed ?? false}.`,
+        last_successful_at: new Date().toISOString(),
+        last_checked_at: new Date().toISOString(),
+        error_message: null,
+      };
+      const existing = await base44.entities.PlatformConnection.filter({ platform: 'facebook', external_id: page.id });
+      if (existing?.length > 0) {
+        await base44.entities.PlatformConnection.update(existing[0].id, connectionData);
+      } else {
+        await base44.entities.PlatformConnection.create(connectionData);
+      }
+      return res;
+    },
     onSuccess: () => {
       toast.success('Facebook Page connected — leads and Messenger events will now flow in.');
       setPagePicker({ open: false, pages: [] });
