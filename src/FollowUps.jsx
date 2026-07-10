@@ -9,19 +9,19 @@ import { Button } from '@/button';
 import { Clock, Check } from 'lucide-react';
 import { format, isPast } from 'date-fns';
 
-const CLOSED_STATUSES = ['Booked', 'Lost', 'Spam'];
+const CLOSED_STATUSES = ['won', 'lost', 'not_suitable'];
 
 export default function FollowUps() {
   const { activeBusiness } = useOutletContext();
   const bid = activeBusiness?.id;
   const qc = useQueryClient();
 
-  // Follow-ups live directly on the Lead entity (follow_up_due_at / follow_up_attempts) --
+  // Follow-ups live directly on the Lead entity (follow_up_date / follow_up_attempts) --
   // there is no separate FollowUp entity. This is the same data the scheduled
   // "Lead Follow-Up Check" automation reads and updates.
   const { data: leads = [] } = useQuery({
     queryKey: ['followups-all', bid],
-    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid }, 'follow_up_due_at', 200) : [],
+    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid }, 'follow_up_date', 200) : [],
     enabled: !!bid,
   });
 
@@ -30,11 +30,11 @@ export default function FollowUps() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['followups-all'] }),
   });
 
-  const withFollowUp = leads.filter(l => !!l.follow_up_due_at);
+  const withFollowUp = leads.filter(l => !!l.follow_up_date);
   const pending = withFollowUp.filter(l => !CLOSED_STATUSES.includes(l.status));
-  const overdue = pending.filter(l => isPast(new Date(l.follow_up_due_at)));
+  const overdue = pending.filter(l => isPast(new Date(l.follow_up_date)));
 
-  const markDone = (lead) => updateMutation.mutate({ id: lead.id, data: { follow_up_due_at: null } });
+  const markDone = (lead) => updateMutation.mutate({ id: lead.id, data: { follow_up_date: null } });
 
   if (!activeBusiness) return null;
 
@@ -46,21 +46,21 @@ export default function FollowUps() {
           <Card><CardContent className="p-8 text-center text-xs text-muted-foreground">No follow-ups scheduled. Set one from a lead's detail view on the Lead Finder page.</CardContent></Card>
         ) : (
           withFollowUp
-            .sort((a, b) => new Date(a.follow_up_due_at) - new Date(b.follow_up_due_at))
+            .sort((a, b) => new Date(a.follow_up_date) - new Date(b.follow_up_date))
             .map(lead => {
               const isDone = CLOSED_STATUSES.includes(lead.status);
-              const isOverdue = !isDone && isPast(new Date(lead.follow_up_due_at));
+              const isOverdue = !isDone && isPast(new Date(lead.follow_up_date));
               return (
                 <Card key={lead.id} className={isOverdue ? 'border-red-500/30 bg-red-500/5' : ''}>
                   <CardContent className="p-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <Clock className={`w-4 h-4 flex-shrink-0 ${isOverdue ? 'text-red-500' : 'text-muted-foreground'}`} />
                       <div>
-                        <p className="text-xs font-medium">{lead.service_requested || 'Cleaning Service'}</p>
+                        <p className="text-xs font-medium">{lead.service_needed || 'Cleaning Service'}</p>
                         <div className="flex gap-2 text-[10px] text-muted-foreground flex-wrap">
                           {lead.name && <span>{lead.name}</span>}
                           {lead.suburb && <span>{lead.suburb}</span>}
-                          <span>Due: {format(new Date(lead.follow_up_due_at), 'dd MMM yyyy')}</span>
+                          <span>Due: {format(new Date(lead.follow_up_date), 'dd MMM yyyy')}</span>
                           {lead.follow_up_attempts > 0 && <span>{lead.follow_up_attempts} attempt{lead.follow_up_attempts !== 1 ? 's' : ''} so far</span>}
                         </div>
                       </div>

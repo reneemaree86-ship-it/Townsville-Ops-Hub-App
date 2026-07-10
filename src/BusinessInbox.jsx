@@ -33,9 +33,9 @@ const PLATFORM_ICONS = {
 
 const STATUS_BADGE = {
   'New': { label: 'New', className: 'bg-primary text-primary-foreground' },
-  'Contacted': { label: 'Contacted', className: 'bg-secondary text-secondary-foreground' },
+  'applied_responded': { label: 'applied_responded', className: 'bg-secondary text-secondary-foreground' },
   'Quote Sent': { label: 'Quote Sent', className: 'border border-amber-500 text-amber-600' },
-  'Booked': { label: 'Booked', className: 'border border-emerald-500 text-emerald-600' },
+  'won': { label: 'won', className: 'border border-emerald-500 text-emerald-600' },
 };
 
 function initials(name) {
@@ -85,7 +85,7 @@ export default function BusinessInbox() {
     unread: l.status === 'New',
     status: l.status,
     suburb: l.suburb,
-    service: l.service_requested,
+    service: l.service_needed,
     contact_email: l.contact_email,
     contact_phone: l.contact_phone,
     notes: l.notes,
@@ -157,8 +157,8 @@ export default function BusinessInbox() {
               <TabsList className="h-7 w-full grid grid-cols-4 text-[10px]">
                 <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
                 <TabsTrigger value="unread" className="text-[10px]">Unread</TabsTrigger>
-                <TabsTrigger value="Contacted" className="text-[10px]">Contacted</TabsTrigger>
-                <TabsTrigger value="Booked" className="text-[10px]">Booked</TabsTrigger>
+                <TabsTrigger value="applied_responded" className="text-[10px]">Contacted</TabsTrigger>
+                <TabsTrigger value="won" className="text-[10px]">Booked</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

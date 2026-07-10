@@ -15,12 +15,12 @@ import { Copy, ExternalLink, CheckCircle2 } from 'lucide-react';
 
 const STATUSES = [
   { value: 'New', label: 'New' },
-  { value: 'Contacted', label: 'Contacted' },
+  { value: 'applied_responded', label: 'applied_responded' },
   { value: 'Qualified', label: 'Qualified' },
   { value: 'Quote Sent', label: 'Quote Sent' },
-  { value: 'Booked', label: 'Booked' },
-  { value: 'Lost', label: 'Lost' },
-  { value: 'Spam', label: 'Spam' },
+  { value: 'won', label: 'won' },
+  { value: 'lost', label: 'lost' },
+  { value: 'not_suitable', label: 'not_suitable' },
 ];
 
 const URGENCY_OPTIONS = [
@@ -37,14 +37,14 @@ export default function LeadDetailModal({ lead, onClose }) {
     contact_phone: lead.contact_phone || '',
     contact_email: lead.contact_email || '',
     suburb: lead.suburb || '',
-    service_requested: lead.service_requested || '',
+    service_needed: lead.service_needed || '',
     urgency: lead.urgency || 'Tyre Kicker',
     status: lead.status || 'New',
     notes: lead.notes || '',
     response_draft: lead.response_draft || '',
     manual_approval_required: !!lead.manual_approval_required,
     manual_approval_reason: lead.manual_approval_reason || '',
-    follow_up_due_at: lead.follow_up_due_at ? lead.follow_up_due_at.substring(0, 10) : '',
+    follow_up_date: lead.follow_up_date ? lead.follow_up_date.substring(0, 10) : '',
   });
   const [copied, setCopied] = useState(false);
   const [followUpSaved, setFollowUpSaved] = useState(false);
@@ -57,13 +57,13 @@ export default function LeadDetailModal({ lead, onClose }) {
     },
   });
 
-  // Follow-ups are tracked directly on the Lead record (follow_up_due_at / follow_up_attempts) --
+  // Follow-ups are tracked directly on the Lead record (follow_up_date / follow_up_attempts) --
   // there is no separate FollowUp entity. This is the same field the scheduled
   // "Lead Follow-Up Check" automation reads and updates.
   const scheduleFollowUpMutation = useMutation({
     mutationFn: () => base44.entities.Lead.update(lead.id, {
-      follow_up_due_at: form.follow_up_due_at ? new Date(form.follow_up_due_at + 'T09:00:00').toISOString() : null,
-      status: form.follow_up_due_at ? 'Contacted' : form.status,
+      follow_up_date: form.follow_up_date ? new Date(form.follow_up_date + 'T09:00:00').toISOString() : null,
+      status: form.follow_up_date ? 'applied_responded' : form.status,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['leads'] });
@@ -89,7 +89,7 @@ export default function LeadDetailModal({ lead, onClose }) {
             Lead Detail
             <StatusBadge status={lead.status} />
             <StatusBadge status={lead.urgency} />
-            <span className="ml-auto text-[10px] text-muted-foreground font-normal">Score: {lead.lead_score ?? '-'}/100</span>
+            <span className="ml-auto text-[10px] text-muted-foreground font-normal">Score: {lead.score ?? '-'}/100</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -107,7 +107,7 @@ export default function LeadDetailModal({ lead, onClose }) {
               <div><Label className="text-xs">Contact Phone</Label><Input value={form.contact_phone} onChange={e => setForm({...form, contact_phone: e.target.value})} className="h-8 text-xs mt-1" /></div>
               <div><Label className="text-xs">Contact Email</Label><Input value={form.contact_email} onChange={e => setForm({...form, contact_email: e.target.value})} className="h-8 text-xs mt-1" /></div>
             </div>
-            <div><Label className="text-xs">Service Needed</Label><Input value={form.service_requested} onChange={e => setForm({...form, service_requested: e.target.value})} className="h-8 text-xs mt-1" /></div>
+            <div><Label className="text-xs">Service Needed</Label><Input value={form.service_needed} onChange={e => setForm({...form, service_needed: e.target.value})} className="h-8 text-xs mt-1" /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Urgency</Label>
@@ -194,7 +194,7 @@ export default function LeadDetailModal({ lead, onClose }) {
           <TabsContent value="followup" className="space-y-3 mt-3">
             <div>
               <Label className="text-xs">Follow-Up Due Date</Label>
-              <Input type="date" value={form.follow_up_due_at} onChange={e => setForm({...form, follow_up_due_at: e.target.value})} className="h-8 text-xs mt-1 max-w-xs" />
+              <Input type="date" value={form.follow_up_date} onChange={e => setForm({...form, follow_up_date: e.target.value})} className="h-8 text-xs mt-1 max-w-xs" />
             </div>
             <Button
               variant="outline"
@@ -205,7 +205,7 @@ export default function LeadDetailModal({ lead, onClose }) {
             >
               {followUpSaved ? <><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Follow-Up Set</> : 'Set Follow-Up Date'}
             </Button>
-            <p className="text-[10px] text-muted-foreground">This sets follow_up_due_at directly on the lead -- the same field the scheduled Lead Follow-Up Check automation reads, and it will appear on the Follow-up Reminders page.</p>
+            <p className="text-[10px] text-muted-foreground">This sets follow_up_date directly on the lead -- the same field the scheduled Lead Follow-Up Check automation reads, and it will appear on the Follow-up Reminders page.</p>
           </TabsContent>
         </Tabs>
 
