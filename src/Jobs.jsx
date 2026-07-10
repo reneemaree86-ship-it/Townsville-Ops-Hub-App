@@ -60,7 +60,7 @@ const emptyForm = {
   final_price: '',
   add_ons: [],
   travel_fee: 0,
-  staff_assigned: [],
+  staff_ids: [],
   notes: '',
   scope_confirmed: false,
   recurring: false,
@@ -75,7 +75,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
       ...emptyForm,
       ...existing,
       add_ons: existing.add_ons || [],
-      staff_assigned: existing.staff_assigned || [],
+      staff_ids: existing.staff_ids || [],
       scheduled_start: toLocalInputValue(existing.scheduled_start),
       scheduled_end: toLocalInputValue(existing.scheduled_end),
     } : emptyForm;
@@ -97,9 +97,9 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
 
   const toggleStaff = (id) => {
     setForm(f => {
-      const exists = (f.staff_assigned || []).includes(id);
-      const staff_assigned = exists ? f.staff_assigned.filter(s => s !== id) : [...(f.staff_assigned || []), id];
-      return { ...f, staff_assigned };
+      const exists = (f.staff_ids || []).includes(id);
+      const staff_ids = exists ? f.staff_ids.filter(s => s !== id) : [...(f.staff_ids || []), id];
+      return { ...f, staff_ids };
     });
   };
 
@@ -218,7 +218,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
               <div className="grid grid-cols-2 gap-2 mt-1">
                 {staff.map(s => (
                   <label key={s.id} className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
-                    <Checkbox checked={(form.staff_assigned || []).includes(s.id)} onCheckedChange={() => toggleStaff(s.id)} />
+                    <Checkbox checked={(form.staff_ids || []).includes(s.id)} onCheckedChange={() => toggleStaff(s.id)} />
                     {s.name}
                   </label>
                 ))}
@@ -410,7 +410,7 @@ export default function Jobs() {
                       <CalendarClock className="w-3 h-3" /> {new Date(j.scheduled_start).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })}
                     </p>
                   )}
-                  {staffNames(j.staff_assigned) && <p className="text-[10px] text-muted-foreground mt-1">Staff: {staffNames(j.staff_assigned)}</p>}
+                  {staffNames(j.staff_ids) && <p className="text-[10px] text-muted-foreground mt-1">Staff: {staffNames(j.staff_ids)}</p>}
                   <p className="text-sm font-semibold text-foreground mt-1">
                     {j.final_price ? `$${parseFloat(j.final_price).toFixed(2)}` : (j.quoted_range_min != null ? `$${parseFloat(j.quoted_range_min).toFixed(2)} – $${parseFloat(j.quoted_range_max || 0).toFixed(2)}` : '—')}
                   </p>
