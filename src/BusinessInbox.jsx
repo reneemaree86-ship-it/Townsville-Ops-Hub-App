@@ -66,8 +66,8 @@ export default function BusinessInbox() {
     enabled: !!bid,
   });
 
-  const fbConnection = connections.find(c => c.platform === 'facebook');
-  const fbConnected = fbConnection?.status === 'connected';
+  const fbConnection = connections.find(c => c.platform_name === 'Facebook');
+  const fbConnected = fbConnection?.connection_status === 'connected';
 
   const replyMutation = useMutation({
     mutationFn: ({ lead_id, message }) => base44.functions.invoke('sendLeadReply', { lead_id, message }),

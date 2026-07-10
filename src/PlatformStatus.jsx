@@ -15,39 +15,39 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 // Matches the real PlatformConnection entity schema exactly:
-// platform (enum), status (enum), last_checked_at, last_successful_at,
-// error_message, scopes (array), account_label, notes, business_id, external_id, access_token
+// platform_name, connection_status, connection_type, last_checked, business_id,
+// account_label, external_id, access_token, token_expires_at, notes, error_message
 
 const PLATFORM_LABELS = {
-  facebook: 'Facebook',
-  google: 'Google (Search/Analytics)',
-  gumtree: 'Gumtree',
-  airtasker: 'Airtasker',
-  townsville_noticeboard: 'Townsville Noticeboard',
-  instagram: 'Instagram',
-  stripe: 'Stripe',
-  google_sheets: 'Google Sheets',
-  google_search_console: 'Google Search Console',
-  gmail: 'Gmail',
-  github: 'GitHub',
-  other: 'Other',
+  Facebook: 'Facebook',
+  Google: 'Google (Search/Analytics)',
+  Gumtree: 'Gumtree',
+  Airtasker: 'Airtasker',
+  'Townsville Noticeboard': 'Townsville Noticeboard',
+  Instagram: 'Instagram',
+  Stripe: 'Stripe',
+  'Google Sheets': 'Google Sheets',
+  'Google Search Console': 'Google Search Console',
+  Gmail: 'Gmail',
+  GitHub: 'GitHub',
+  Other: 'Other',
 };
 
 const PLATFORM_OPTIONS = Object.keys(PLATFORM_LABELS);
 
-const STATUS_OPTIONS = ['connected', 'disconnected', 'error', 'pending'];
+const STATUS_OPTIONS = ['connected', 'disconnected', 'error', 'requires_authorised_connection', 'manual_monitoring_only', 'fallback_active', 'terms_restricted'];
 
 const KNOWN_PLATFORM_DEFAULTS = [
-  { platform: 'gumtree', notes: 'No public API available. Monitored manually via URL Watchlist.' },
-  { platform: 'google_search_console', notes: 'Requires Google Search Console OAuth for organic traffic and SEO data.' },
-  { platform: 'google', notes: 'Google Search / Analytics for lead scanning and traffic insights.' },
-  { platform: 'airtasker', notes: 'No public API available. Monitored manually via URL Watchlist.' },
-  { platform: 'townsville_noticeboard', notes: 'Manual monitoring only. Add URLs to Watchlist.' },
-  { platform: 'stripe', notes: 'Requires Stripe secret key for invoicing and financial reporting.' },
-  { platform: 'google_sheets', notes: 'Requires Google Sheets OAuth for quarterly financial reports.' },
-  { platform: 'gmail', notes: 'Requires Gmail OAuth for sending lead replies and notifications.' },
-  { platform: 'github', notes: 'Requires GitHub OAuth for app code sync and backups.' },
-  { platform: 'instagram', notes: 'Requires Instagram/Meta OAuth for DMs and lead monitoring.' },
+  { platform_name: 'Gumtree', notes: 'No public API available. Monitored manually via URL Watchlist.' },
+  { platform_name: 'Google Search Console', notes: 'Requires Google Search Console OAuth for organic traffic and SEO data.' },
+  { platform_name: 'Google', notes: 'Google Search / Analytics for lead scanning and traffic insights.' },
+  { platform_name: 'Airtasker', notes: 'No public API available. Monitored manually via URL Watchlist.' },
+  { platform_name: 'Townsville Noticeboard', notes: 'Manual monitoring only. Add URLs to Watchlist.' },
+  { platform_name: 'Stripe', notes: 'Requires Stripe secret key for invoicing and financial reporting.' },
+  { platform_name: 'Google Sheets', notes: 'Requires Google Sheets OAuth for quarterly financial reports.' },
+  { platform_name: 'Gmail', notes: 'Requires Gmail OAuth for sending lead replies and notifications.' },
+  { platform_name: 'GitHub', notes: 'Requires GitHub OAuth for app code sync and backups.' },
+  { platform_name: 'Instagram', notes: 'Requires Instagram/Meta OAuth for DMs and lead monitoring.' },
 ];
 
 const empty = { platform_name: '', connection_status: 'requires_authorised_connection', connection_type: 'oauth', account_label: '', notes: '', error_message: '', business_id: '' };
@@ -124,7 +124,6 @@ function FacebookConnectCard({ bid }) {
         external_id: page.id,
         access_token: page.access_token,
         token_expires_at: res?.token_expires_at || null,
-        scopes: (res?.scopes || []).join(','),
         notes: `Connected ${new Date().toISOString()}. Page: ${page.name} (${page.id}). Webhooks: ${res?.webhooks_subscribed ?? false}. Fans: ${res?.fan_count ?? 'unknown'}.`,
         last_checked: new Date().toISOString(),
         error_message: null,
@@ -240,12 +239,12 @@ export default function PlatformStatus() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ['platform-connections'] });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.PlatformConnection.create({ ...data, business_id: bid, last_checked_at: new Date().toISOString() }),
+    mutationFn: (data) => base44.entities.PlatformConnection.create({ ...data, business_id: bid, last_checked: new Date().toISOString() }),
     onSuccess: () => { invalidate(); setOpen(false); setForm(empty); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PlatformConnection.update(id, { ...data, last_checked_at: new Date().toISOString() }),
+    mutationFn: ({ id, data }) => base44.entities.PlatformConnection.update(id, { ...data, last_checked: new Date().toISOString() }),
     onSuccess: () => { invalidate(); setOpen(false); setEditing(null); },
   });
 
@@ -257,8 +256,7 @@ export default function PlatformStatus() {
   const refreshCheckMutation = useMutation({
     mutationFn: (conn) => {
       const now = new Date().toISOString();
-      const patch = { last_checked_at: now };
-      if (conn.connection_status === 'connected') patch.last_checked = now;
+      const patch = { last_checked: now };
       return base44.entities.PlatformConnection.update(conn.id, patch);
     },
     onSuccess: invalidate,
@@ -267,8 +265,8 @@ export default function PlatformStatus() {
   const openEdit = (conn) => {
     setEditing(conn);
     setForm({
-      platform: conn.platform || '',
-      connection_status: conn.connection_status || 'pending',
+      platform_name: conn.platform_name || '',
+      connection_status: conn.connection_status || 'requires_authorised_connection',
       account_label: conn.account_label || '',
       notes: conn.notes || '',
       error_message: conn.error_message || '',
@@ -278,14 +276,14 @@ export default function PlatformStatus() {
 
   const openNew = (preset = null) => {
     setEditing(null);
-    setForm(preset ? { ...empty, platform: preset.platform, notes: preset.notes } : empty);
+    setForm(preset ? { ...empty, platform_name: preset.platform_name, notes: preset.notes } : empty);
     setOpen(true);
   };
 
   const handleSave = () => {
-    if (!form.platform) return;
+    if (!form.platform_name) return;
     const data = {
-      platform: form.platform,
+      platform_name: form.platform_name,
       connection_status: form.connection_status,
       account_label: form.account_label,
       notes: form.notes,
@@ -308,7 +306,7 @@ export default function PlatformStatus() {
   const issueCount = deduped.filter(c => ['requires_authorised_connection','error','terms_restricted'].includes(c.connection_status)).length;
 
   const availablePresets = KNOWN_PLATFORM_DEFAULTS.filter(
-    p => !connections.some(c => c.platform === p.platform)
+    p => !connections.some(c => c.platform_name === p.platform_name)
   );
 
   return (
@@ -345,7 +343,7 @@ export default function PlatformStatus() {
             <p className="text-xs text-amber-700 mb-3">Add the platforms you use so you can track connection status. Quick-add known platforms below:</p>
             <div className="flex flex-wrap gap-2">
               {KNOWN_PLATFORM_DEFAULTS.map(p => (
-                <Button key={p.platform} size="sm" variant="outline" className="text-xs h-7" onClick={() => openNew(p)}>{PLATFORM_LABELS[p.platform]}</Button>
+                <Button key={p.platform_name} size="sm" variant="outline" className="text-xs h-7" onClick={() => openNew(p)}>{PLATFORM_LABELS[p.platform_name]}</Button>
               ))}
             </div>
           </CardContent>
@@ -356,8 +354,8 @@ export default function PlatformStatus() {
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] text-muted-foreground">Quick-add:</span>
           {availablePresets.map(p => (
-            <Button key={p.platform} size="sm" variant="outline" className="text-xs h-6 px-2" onClick={() => openNew(p)}>
-              + {PLATFORM_LABELS[p.platform]}
+            <Button key={p.platform_name} size="sm" variant="outline" className="text-xs h-6 px-2" onClick={() => openNew(p)}>
+              + {PLATFORM_LABELS[p.platform_name]}
             </Button>
           ))}
         </div>
@@ -373,7 +371,7 @@ export default function PlatformStatus() {
                   : <WifiOff className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">{PLATFORM_LABELS[conn.platform] || conn.platform}</p>
+                    <p className="text-sm font-medium">{PLATFORM_LABELS[conn.platform_name] || conn.platform_name}</p>
                     {conn.account_label && <span className="text-[10px] text-muted-foreground">· {conn.account_label}</span>}
                   </div>
                   {conn.notes && <p className="text-[10px] text-muted-foreground mt-0.5 max-w-xl">{conn.notes}</p>}
@@ -381,8 +379,7 @@ export default function PlatformStatus() {
                     <p className="text-[10px] text-red-500 mt-0.5">Error: {conn.error_message}</p>
                   )}
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {conn.last_checked_at ? `Last checked: ${format(new Date(conn.last_checked_at), 'dd MMM yyyy HH:mm')}` : 'Never checked'}
-                    {conn.last_successful_at ? ` · Last successful: ${format(new Date(conn.last_successful_at), 'dd MMM yyyy HH:mm')}` : ''}
+                    {conn.last_checked ? `Last checked: ${format(new Date(conn.last_checked), 'dd MMM yyyy HH:mm')}` : 'Never checked'}
                   </p>
                 </div>
               </div>
@@ -408,7 +405,7 @@ export default function PlatformStatus() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium mb-1 block">Platform</label>
-                <Select value={form.platform} onValueChange={v => setForm(f => ({ ...f, platform: v }))} disabled={!!editing}>
+                <Select value={form.platform_name} onValueChange={v => setForm(f => ({ ...f, platform_name: v }))} disabled={!!editing}>
                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select platform" /></SelectTrigger>
                   <SelectContent>
                     {PLATFORM_OPTIONS.map(p => (

@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-recent'],
-    queryFn: () => base44.entities.NotificationQueue.filter({ status: 'queued' }, '-created_date', 10),
+    queryFn: () => base44.entities.NotificationQueue.filter({ read: false }, '-created_date', 10),
   });
 
   // No businesses at all — show a useful empty state, not a perpetual "loading"
@@ -63,7 +63,7 @@ export default function Dashboard() {
 
   const hotLeads = leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'urgent');
   const followUps = leads.filter(l => !!l.follow_up_due_at && !['converted','closed','rejected'].includes(l.status));
-  const openErrors = errors.filter(e => e.status === 'open' || e.status === 'investigating');
+  const openErrors = errors.filter(e => e.fix_status !== 'fixed');
   const lastAudit = audits[0];
 
   return (
@@ -127,7 +127,7 @@ export default function Dashboard() {
                     <p className="text-xs font-medium truncate">{n.title}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{n.message}</p>
                   </div>
-                  <StatusBadge status={n.priority} className="flex-shrink-0" />
+                  <StatusBadge status={n.severity} className="flex-shrink-0" />
                 </div>
               ))
             )}
@@ -148,8 +148,8 @@ export default function Dashboard() {
               openErrors.slice(0, 5).map(err => (
                 <div key={err.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/50">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{err.message}</p>
-                    <p className="text-[10px] text-muted-foreground">{err.component || err.page || err.error_type?.replace(/_/g, ' ')}</p>
+                    <p className="text-xs font-medium truncate">{err.description}</p>
+                    <p className="text-[10px] text-muted-foreground">{err.source || err.error_type?.replace(/_/g, ' ')}</p>
                   </div>
                   <StatusBadge status={err.severity} />
                 </div>

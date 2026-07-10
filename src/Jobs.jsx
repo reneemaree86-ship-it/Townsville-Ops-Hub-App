@@ -52,7 +52,7 @@ const emptyForm = {
   service_type: 'standard_cleaning',
   address: '',
   suburb: '',
-  status: 'draft',
+  status: 'scheduled',
   scheduled_start: '',
   scheduled_end: '',
   quoted_range_min: '',
@@ -171,7 +171,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
             <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
               <SelectTrigger className="mt-1 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {['draft', 'confirmed', 'in_progress', 'completed', 'cancelled', 'rescheduled'].map(s => (
+                {['scheduled', 'in_progress', 'completed', 'cancelled'].map(s => (
                   <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
                 ))}
               </SelectContent>
@@ -381,12 +381,10 @@ export default function Jobs() {
           <SelectTrigger className="w-[180px] text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="scheduled">Scheduled</SelectItem>
             <SelectItem value="in_progress">In progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
-            <SelectItem value="rescheduled">Rescheduled</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -418,12 +416,7 @@ export default function Jobs() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {(j.status === 'draft') && (
-                    <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setStatus(j, 'confirmed')}>
-                      <CheckCircle2 className="w-3 h-3 mr-1" /> Confirm
-                    </Button>
-                  )}
-                  {(j.status === 'confirmed') && (
+                  {(j.status === 'scheduled') && (
                     <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setStatus(j, 'in_progress')}>
                       <PlayCircle className="w-3 h-3 mr-1" /> Start
                     </Button>
