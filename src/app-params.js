@@ -2,6 +2,11 @@ const isNode = typeof window === 'undefined';
 const windowObj = isNode ? { localStorage: new Map() } : window;
 const storage = windowObj.localStorage;
 
+// Townsville Ops Hub — Base44 App ID.
+// Hardcoded here so Cloudflare (and any other CI build) always uses the correct
+// app regardless of what VITE_BASE44_APP_ID is set to in the build environment.
+const TOWNSVILLE_OPS_HUB_APP_ID = '6a26e1dc787e5dff836af10e';
+
 const toSnakeCase = (str) => {
 	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 }
@@ -40,7 +45,9 @@ const getAppParams = () => {
 		storage.removeItem('token');
 	}
 	return {
-		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
+		// Use the hardcoded Ops Hub app ID as the definitive default.
+		// The URL param ?app_id=... can still override it at runtime if needed.
+		appId: getAppParamValue("app_id", { defaultValue: TOWNSVILLE_OPS_HUB_APP_ID }),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
 		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
