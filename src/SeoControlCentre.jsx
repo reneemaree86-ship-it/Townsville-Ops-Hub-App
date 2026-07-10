@@ -102,7 +102,7 @@ export default function SeoControlCentre() {
         <Card className="border-emerald-500/30 bg-emerald-500/5">
           <CardContent className="p-3">
             <p className="text-xs text-emerald-600">
-              Audit complete: {auditMutation.data?.data?.issues_found ?? issues.length} issue(s) found on {auditMutation.data?.data?.website || websiteUrl}
+              Audit complete: {auditMutation.data?.data?.issues_found ?? issues.length} issue(s) found on {auditMutation.data?.data?.website_url || websiteUrl}
             </p>
           </CardContent>
         </Card>

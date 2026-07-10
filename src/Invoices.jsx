@@ -131,7 +131,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="w-4 h-4" /> Invoice Preview
@@ -174,6 +174,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
 
           {/* Line Items */}
           <div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
@@ -208,6 +209,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           <Separator />
@@ -404,7 +406,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
         />
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label className="text-xs">Invoice Number</Label>
           <Input className="mt-1 text-sm" value={form.invoice_number}
@@ -530,7 +532,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label className="text-xs">Travel Fee $</Label>
           <Input type="number" className="mt-1 text-sm" value={travelFee}
@@ -802,7 +804,7 @@ export default function Invoices() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {['draft', 'sent', 'paid', 'overdue'].map(status => (
           <Card key={status} className="border border-border">
             <CardContent className="p-4">

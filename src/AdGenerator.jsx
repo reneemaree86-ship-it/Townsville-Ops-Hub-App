@@ -131,14 +131,14 @@ export default function AdGenerator() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {draft.copy_headline && (
+                {draft.short_description && (
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-medium flex-1">{draft.copy_headline}</p>
-                    <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => { navigator.clipboard.writeText(draft.copy_headline); toast.success('Copied'); }}><Copy className="w-3 h-3" /></Button>
+                    <p className="text-xs font-medium flex-1">{draft.short_description}</p>
+                    <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => { navigator.clipboard.writeText(draft.short_description); toast.success('Copied'); }}><Copy className="w-3 h-3" /></Button>
                   </div>
                 )}
-                {draft.copy_body && <div><p className="text-[10px] text-muted-foreground">Body:</p><p className="text-xs whitespace-pre-wrap">{draft.copy_body}</p></div>}
-                {draft.copy_cta && <div><p className="text-[10px] text-muted-foreground">CTA:</p><p className="text-xs font-medium">{draft.copy_cta}</p></div>}
+                {draft.long_description && <div><p className="text-[10px] text-muted-foreground">Body:</p><p className="text-xs whitespace-pre-wrap">{draft.long_description}</p></div>}
+                {draft.call_to_action && <div><p className="text-[10px] text-muted-foreground">CTA:</p><p className="text-xs font-medium">{draft.call_to_action}</p></div>}
                 {draft.notes && <div><p className="text-[10px] text-muted-foreground">Notes:</p><p className="text-[10px]">{draft.notes}</p></div>}
               </CardContent>
             </Card>

@@ -73,8 +73,8 @@ export default function ScanLogPanel({ scanLog, scans }) {
                       {typeof run.records_processed === 'number' && <span className="font-medium">{run.records_processed} reviewed{typeof run.records_saved === 'number' ? `, ${run.records_saved} saved` : ''}</span>}
                       {durationMin !== null && <span className="text-muted-foreground">{durationMin}m</span>}
                     </div>
-                    {run.result_summary && <p className="text-[10px] text-muted-foreground mt-1">{run.result_summary}</p>}
-                    {run.error_message && <p className="text-[9px] text-amber-600 mt-1 whitespace-pre-wrap">{run.error_message}</p>}
+                    {run.summary && <p className="text-[10px] text-muted-foreground mt-1">{run.summary}</p>}
+                    {run.error && <p className="text-[9px] text-amber-600 mt-1 whitespace-pre-wrap">{run.error}</p>}
                   </div>
                 );
               })}

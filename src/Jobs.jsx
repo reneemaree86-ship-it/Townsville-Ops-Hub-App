@@ -118,7 +118,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{existing ? 'Edit Job' : 'New Job'}</DialogTitle>
         </DialogHeader>
@@ -146,7 +146,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Address</Label>
               <Input className="mt-1 text-sm" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
@@ -156,7 +156,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
               <Input className="mt-1 text-sm" value={form.suburb} onChange={e => setForm(f => ({ ...f, suburb: e.target.value }))} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Scheduled Start</Label>
               <Input type="datetime-local" className="mt-1 text-sm" value={form.scheduled_start} onChange={e => setForm(f => ({ ...f, scheduled_start: e.target.value }))} />
@@ -177,7 +177,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Quoted Min ($)</Label>
               <Input type="number" step="0.01" className="mt-1 text-sm" value={form.quoted_range_min}
@@ -196,7 +196,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
           </div>
           <div>
             <Label className="text-xs">Add-ons</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
               {ADD_ONS.map(a => (
                 <label key={a.key} className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
                   <Checkbox checked={(form.add_ons || []).some(x => x.key === a.key)} onCheckedChange={() => toggleAddOn(a)} />
@@ -215,7 +215,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
             {staff.length === 0 ? (
               <p className="text-[10px] text-muted-foreground mt-1">No staff added yet — there's no Staff page yet to add team members. Ask me to build one if you need it.</p>
             ) : (
-              <div className="grid grid-cols-2 gap-2 mt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                 {staff.map(s => (
                   <label key={s.id} className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
                     <Checkbox checked={(form.staff_ids || []).includes(s.id)} onCheckedChange={() => toggleStaff(s.id)} />
@@ -225,7 +225,7 @@ function JobFormModal({ open, onClose, onSave, existing, saving, clients, staff 
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
               <Checkbox checked={form.scope_confirmed} onCheckedChange={v => setForm(f => ({ ...f, scope_confirmed: !!v }))} />
               <Label className="text-xs font-normal cursor-pointer">Scope confirmed</Label>

@@ -64,8 +64,8 @@ export default function ScanHistory() {
                       <TableCell className="text-xs font-medium">{run.records_processed ?? 0}</TableCell>
                       <TableCell className="text-xs font-medium text-emerald-600">{run.records_saved ?? 0}</TableCell>
                       <TableCell className="text-[10px]">{dur !== null ? `${dur}s` : '—'}</TableCell>
-                      <TableCell className="text-[10px] max-w-[320px] truncate" title={run.result_summary || run.error_message || ''}>
-                        {run.result_summary || run.error_message || '—'}
+                      <TableCell className="text-[10px] max-w-[320px] truncate" title={run.summary || run.error || ''}>
+                        {run.summary || run.error || '—'}
                       </TableCell>
                     </TableRow>
                   );
@@ -92,7 +92,7 @@ export default function ScanHistory() {
                   return (
                     <TableRow key={audit.id}>
                       <TableCell className="text-[10px]">{format(new Date(audit.created_date), 'dd MMM HH:mm')}</TableCell>
-                      <TableCell className="text-[10px] max-w-[150px] truncate">{audit.website}</TableCell>
+                      <TableCell className="text-[10px] max-w-[150px] truncate">{audit.website_url}</TableCell>
                       <TableCell><StatusBadge status={audit.status} /></TableCell>
                       <TableCell className="text-xs">{audit.issues_found ?? 0}</TableCell>
                       <TableCell className="text-xs text-red-500">{audit.critical_count ?? 0}</TableCell>

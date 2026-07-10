@@ -46,7 +46,7 @@ function ClientFormModal({ open, onClose, onSave, existing, saving }) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{existing ? 'Edit Client' : 'New Client'}</DialogTitle>
         </DialogHeader>
@@ -56,7 +56,7 @@ function ClientFormModal({ open, onClose, onSave, existing, saving }) {
             <Input required className="mt-1 text-sm" value={form.full_name}
               onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Phone</Label>
               <Input className="mt-1 text-sm" value={form.phone}
@@ -78,7 +78,7 @@ function ClientFormModal({ open, onClose, onSave, existing, saving }) {
             <Input className="mt-1 text-sm" value={form.suburb}
               onChange={e => setForm(f => ({ ...f, suburb: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Client Type</Label>
               <Select value={form.client_type} onValueChange={v => setForm(f => ({ ...f, client_type: v }))}>

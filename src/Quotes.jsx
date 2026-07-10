@@ -205,7 +205,7 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{existing ? 'Edit Quote' : 'New Quote'}</DialogTitle>
         </DialogHeader>
@@ -267,7 +267,7 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
           <Separator />
           <p className="text-xs font-semibold text-foreground">Auto-Hours Calculator</p>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Bedrooms</Label>
               <Input type="number" className="mt-1 text-sm" value={form.bedrooms}
@@ -285,7 +285,7 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
               <Checkbox checked={form.large_kitchen} onCheckedChange={v => setForm(f => ({ ...f, large_kitchen: !!v }))} />
               Large kitchen
@@ -329,7 +329,7 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
 
           <div>
             <Label className="text-xs">Add-ons</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
               {availableAddOns.map(a => (
                 <label key={a.name} className="flex items-center gap-2 text-xs p-2 border border-border rounded-md cursor-pointer">
                   <Checkbox checked={(form.add_ons || []).some(x => x.name === a.name)} onCheckedChange={() => toggleAddOn(a)} />
@@ -339,7 +339,7 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Travel Fee ($)</Label>
               <Input type="number" step="0.01" className="mt-1 text-sm" value={form.travel_fee}
@@ -378,7 +378,7 @@ function QuoteFormModal({ open, onClose, onSave, existing, saving, clients, lead
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
               <Checkbox checked={form.photos_received} onCheckedChange={v => setForm(f => ({ ...f, photos_received: !!v }))} />
               <Label className="text-xs font-normal cursor-pointer">Photos received</Label>
@@ -486,7 +486,7 @@ function QuotePreviewModal({ quote, client, lead, onClose, onSent }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Eye className="w-4 h-4" /> Quote Preview</DialogTitle>
         </DialogHeader>
@@ -510,6 +510,7 @@ function QuotePreviewModal({ quote, client, lead, onClose, onSent }) {
               {recipientEmail && <p className="text-xs text-muted-foreground">{recipientEmail}</p>}
             </div>
             <Separator />
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
@@ -543,6 +544,7 @@ function QuotePreviewModal({ quote, client, lead, onClose, onSent }) {
                 )}
               </tbody>
             </table>
+            </div>
             <Separator />
             <div className="space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="text-foreground">${parseFloat(quote.subtotal || 0).toFixed(2)}</span></div>
@@ -692,7 +694,7 @@ export default function Quotes() {
         service_type: quote.service_type,
         address: client?.address || '',
         suburb: client?.suburb || '',
-        status: 'draft',
+        status: 'scheduled',
         quoted_range_min: quote.total_range_min,
         quoted_range_max: quote.total_range_max,
         add_ons: quote.add_ons || [],

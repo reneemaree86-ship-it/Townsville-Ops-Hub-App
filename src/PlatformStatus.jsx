@@ -197,7 +197,7 @@ function FacebookConnectCard({ bid }) {
       </CardContent>
 
       <Dialog open={pagePicker.open} onOpenChange={(v) => setPagePicker(p => ({ ...p, open: v }))}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm">Select the Facebook Page to connect</DialogTitle>
           </DialogHeader>
@@ -397,7 +397,7 @@ export default function PlatformStatus() {
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setForm(empty); } }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm">{editing ? 'Edit Platform Connection' : 'Add Platform Connection'}</DialogTitle>
           </DialogHeader>

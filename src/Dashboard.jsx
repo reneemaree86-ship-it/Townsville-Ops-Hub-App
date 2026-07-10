@@ -74,7 +74,7 @@ export default function Dashboard() {
         business={activeBusiness}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Active Leads" value={leads.filter(l => !['won','lost','not_suitable'].includes(l.status)).length} icon={UserSearch} color="text-primary" subtext={`${hotLeads.length} hot`} />
         <StatCard label="SEO Audits" value={audits.length} icon={Search} color="text-blue-500" subtext={lastAudit ? `Last: ${lastAudit.issues_found} issues` : 'None yet'} />
         <StatCard label="Open Errors" value={openErrors.length} icon={AlertTriangle} color="text-red-500" subtext={`${errors.filter(e => e.severity === 'critical').length} critical`} />
@@ -162,7 +162,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-2">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Link to="/seo"><Button variant="outline" className="w-full h-auto py-3 flex flex-col gap-1 text-xs"><Search className="w-4 h-4" />Run SEO Audit</Button></Link>
             <Link to="/leads"><Button variant="outline" className="w-full h-auto py-3 flex flex-col gap-1 text-xs"><UserSearch className="w-4 h-4" />Find Leads Now</Button></Link>
             <Link to="/qa"><Button variant="outline" className="w-full h-auto py-3 flex flex-col gap-1 text-xs"><TestTube className="w-4 h-4" />Run QA Tests</Button></Link>
