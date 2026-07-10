@@ -41,22 +41,37 @@ import Quotes from '@/Quotes';
 import ServicesCatalog from '@/ServicesCatalog';
 import Jobs from '@/Jobs';
 
-// Catches the ?code=&state=fb_connect that Facebook Login sends back to our
-// registered root redirect URI, stashes the code, and routes to Platform Status
-// where the connection flow actually completes.
+// ---------------------------------------------------------------------------
+// FacebookOAuthCatcher
+//
+// Facebook redirects back to the app root with ?code=xxx&state=fb_connect
+// This component MUST run OUTSIDE of AuthenticatedApp so it fires before any
+// auth check, spinner, or navigateToLogin() can wipe the URL.
+//
+// Strategy:
+//   1. On first render, synchronously read the URL params (no useEffect delay).
+//   2. If we see a valid code+state, stash the code in sessionStorage immediately.
+//   3. Navigate to /platforms so PlatformStatus picks it up and calls the backend.
+// ---------------------------------------------------------------------------
 const FacebookOAuthCatcher = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Run synchronously on every render so we catch the code as soon as possible.
+  // We use a ref-free inline check rather than useEffect to avoid the one-frame
+  // delay that lets the auth guard fire first.
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const code = params.get('code');
-    const state = params.get('state');
     if (code && state === 'fb_connect') {
+      // Store the code before any navigation can occur
       sessionStorage.setItem('fb_oauth_code', code);
+      // Replace the current history entry so the user can't land back on /?code=...
       navigate('/platforms', { replace: true });
     }
-  }, [location, navigate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 };
@@ -82,46 +97,43 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <>
-      <FacebookOAuthCatcher />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/inbox" element={<BusinessInbox />} />
-            <Route path="/invoices" element={<Invoices />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/quotes" element={<Quotes />} />
-            <Route path="/services" element={<ServicesCatalog />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/seo" element={<SeoControlCentre />} />
-            <Route path="/crawl" element={<WebsiteCrawlCentre />} />
-            <Route path="/traffic" element={<OrganicTraffic />} />
-            <Route path="/qa" element={<QaTestingCentre />} />
-            <Route path="/leads" element={<LeadFinder />} />
-            <Route path="/townsville-leads" element={<TownsvilleLeads />} />
-            <Route path="/ads" element={<AdGenerator />} />
-            <Route path="/platforms" element={<PlatformStatus />} />
-            <Route path="/errors" element={<ErrorFixLog />} />
-            <Route path="/scan-history" element={<ScanHistory />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/follow-ups" element={<FollowUps />} />
-            <Route path="/approvals" element={<ApprovalQueue />} />
-            <Route path="/settings" element={<BusinessSettings />} />
-            <Route path="/watchlist" element={<UrlWatchlistPage />} />
-            <Route path="/agent" element={<CleaningAgent />} />
-            <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
-          </Route>
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/inbox" element={<BusinessInbox />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/quotes" element={<Quotes />} />
+          <Route path="/services" element={<ServicesCatalog />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/seo" element={<SeoControlCentre />} />
+          <Route path="/crawl" element={<WebsiteCrawlCentre />} />
+          <Route path="/traffic" element={<OrganicTraffic />} />
+          <Route path="/qa" element={<QaTestingCentre />} />
+          <Route path="/leads" element={<LeadFinder />} />
+          <Route path="/townsville-leads" element={<TownsvilleLeads />} />
+          <Route path="/ads" element={<AdGenerator />} />
+          <Route path="/platforms" element={<PlatformStatus />} />
+          <Route path="/errors" element={<ErrorFixLog />} />
+          <Route path="/scan-history" element={<ScanHistory />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/follow-ups" element={<FollowUps />} />
+          <Route path="/approvals" element={<ApprovalQueue />} />
+          <Route path="/settings" element={<BusinessSettings />} />
+          <Route path="/watchlist" element={<UrlWatchlistPage />} />
+          <Route path="/agent" element={<CleaningAgent />} />
+          <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
         </Route>
+      </Route>
 
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
-    </>
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
   );
 };
 
@@ -131,6 +143,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
+          {/* FacebookOAuthCatcher MUST be outside AuthenticatedApp so it fires
+              before any auth check can navigate away from the callback URL */}
+          <FacebookOAuthCatcher />
           <AuthenticatedApp />
         </Router>
         <Toaster />

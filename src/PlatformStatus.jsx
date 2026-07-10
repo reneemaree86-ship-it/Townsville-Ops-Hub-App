@@ -54,6 +54,11 @@ const empty = { platform: '', status: 'pending', account_label: '', notes: '', e
 
 const FB_APP_ID = '1836147090686861';
 const FB_SCOPES = 'pages_show_list,leads_retrieval,pages_messaging,pages_read_engagement,pages_manage_metadata,pages_utility_messaging,business_management';
+// Must exactly match the URI whitelisted in Meta Developer Console
+// Both domains are whitelisted; we use the pages.dev one as canonical since
+// it was the one added first. If townsvillebusinesshub.online is also added,
+// we can switch to window.location.origin for flexibility.
+const FB_REDIRECT_URI = 'https://townsville-ops-hub-app.pages.dev/';
 
 function FacebookConnectCard({ bid }) {
   const qc = useQueryClient();
@@ -70,7 +75,7 @@ function FacebookConnectCard({ bid }) {
   const exchangeMutation = useMutation({
     mutationFn: (code) => base44.functions.invoke('facebookOAuthExchange', {
       code,
-      redirect_uri: `${window.location.origin}/`,
+      redirect_uri: FB_REDIRECT_URI,
     }),
     onSuccess: (res) => {
       const pages = res?.data?.pages || res?.pages || [];
@@ -112,7 +117,7 @@ function FacebookConnectCard({ bid }) {
   });
 
   const startOAuth = () => {
-    const redirectUri = `${window.location.origin}/`;
+    const redirectUri = FB_REDIRECT_URI;
     const url = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${FB_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(FB_SCOPES)}&response_type=code&state=fb_connect`;
     window.location.href = url;
   };
