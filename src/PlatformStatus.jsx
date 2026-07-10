@@ -54,11 +54,10 @@ const empty = { platform: '', status: 'pending', account_label: '', notes: '', e
 
 const FB_APP_ID = '1836147090686861';
 const FB_SCOPES = 'pages_show_list,leads_retrieval,pages_messaging,pages_read_engagement,pages_manage_metadata,pages_utility_messaging,business_management';
-// Must exactly match the URI whitelisted in Meta Developer Console
-// Both domains are whitelisted; we use the pages.dev one as canonical since
-// it was the one added first. If townsvillebusinesshub.online is also added,
-// we can switch to window.location.origin for flexibility.
-const FB_REDIRECT_URI = 'https://townsville-ops-hub-app.pages.dev/';
+// Must exactly match the URI whitelisted in Meta Developer Console.
+// Using window.location.origin so it works on both townsvillebusinesshub.online
+// and the pages.dev preview URL — both must be listed in Meta App Dashboard > OAuth settings.
+const FB_REDIRECT_URI = (typeof window !== 'undefined' ? window.location.origin : 'https://townsvillebusinesshub.online') + '/';
 
 function FacebookConnectCard({ bid }) {
   const qc = useQueryClient();
