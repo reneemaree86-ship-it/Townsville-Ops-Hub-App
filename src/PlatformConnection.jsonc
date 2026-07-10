@@ -31,6 +31,19 @@
         "pending"
       ]
     },
+    "external_id": {
+      "type": "string",
+      "description": "The platform's own ID for this connection (e.g. Facebook Page ID)"
+    },
+    "access_token": {
+      "type": "string",
+      "description": "Stored access token for this platform connection (encrypted at rest)"
+    },
+    "token_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the access token expires (ISO 8601)"
+    },
     "last_checked_at": {
       "type": "string",
       "format": "date-time"
