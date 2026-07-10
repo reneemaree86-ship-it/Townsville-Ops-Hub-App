@@ -270,7 +270,7 @@ export default function LeadFinder() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Total Leads" value={leads.length} icon={UserSearch} />
         <StatCard label="Hot Leads" value={leads.filter(l => (l.score || 0) >= 70 || l.urgency === 'Hot - Urgent').length} icon={Flame} color="text-orange-500" />
         <StatCard label="New" value={leads.filter(l => l.status === 'New').length} icon={Plus} color="text-blue-500" />

@@ -47,7 +47,7 @@ export default function Sidebar({ activeBusiness, onBusinessChange, businesses, 
           <p className="text-[10px] text-muted-foreground mt-0.5">Renee's Cleaning Services</p>
         </div>
         {onClose && (
-          <button onClick={onClose} className="lg:hidden p-1 rounded hover:bg-muted">
+          <button onClick={onClose} className="md:hidden p-1 rounded hover:bg-muted">
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
         )}

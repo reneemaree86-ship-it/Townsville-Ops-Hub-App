@@ -378,7 +378,7 @@ export default function Jobs() {
       <div className="flex items-center gap-2">
         <Label className="text-xs whitespace-nowrap">Filter by status:</Label>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[180px] text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="scheduled">Scheduled</SelectItem>

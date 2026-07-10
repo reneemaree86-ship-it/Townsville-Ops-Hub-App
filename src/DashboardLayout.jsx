@@ -41,7 +41,7 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-[70] bg-card border-b border-border px-4 h-14 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-[70] bg-card border-b border-border px-4 h-14 flex items-center justify-between">
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
@@ -59,13 +59,13 @@ export default function DashboardLayout() {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
+          className="md:hidden fixed inset-0 bg-black/50 z-50"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed top-0 left-0 h-screen z-[60] transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:z-40`}>
+      <div className={`fixed top-0 left-0 h-screen z-[60] transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:z-40`}>
         <Sidebar
           activeBusiness={activeBusiness}
           onBusinessChange={handleBusinessChange}
@@ -76,8 +76,8 @@ export default function DashboardLayout() {
       </div>
 
       {/* Main content */}
-      <main className="lg:ml-64 pt-14 lg:pt-0 min-h-screen">
-        <div className="p-4 lg:p-6">
+      <main className="md:ml-64 pt-14 md:pt-0 min-h-screen">
+        <div className="p-4 md:p-6">
           <Outlet context={{ activeBusiness, businesses }} />
         </div>
       </main>

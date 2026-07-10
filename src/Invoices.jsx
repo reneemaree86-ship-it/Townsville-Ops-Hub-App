@@ -139,7 +139,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
         </DialogHeader>
 
         <div ref={invoiceRef} className="bg-card border border-border rounded-lg overflow-hidden font-sans">
-          <div className="p-6 space-y-6">
+          <div className="p-4 md:p-6 space-y-6">
           {/* Header: small logo top-left, invoice meta top-right */}
           <div className="flex justify-between items-start">
             <img
@@ -460,39 +460,88 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
 
         <div className="space-y-2">
           {lineItems.map((li) => (
-            <div key={li.id} className="grid grid-cols-[1fr_70px_100px_90px_32px] gap-2 items-center">
-              <Input
-                placeholder="Description (e.g. Deep Clean, Oven Clean...)"
-                className="text-sm"
-                value={li.description}
-                onChange={e => updateLineItem(li.id, 'description', e.target.value)}
-              />
-              <Input
-                type="number"
-                min="1"
-                step="1"
-                placeholder="1"
-                className="text-sm"
-                value={li.quantity}
-                onChange={e => updateLineItem(li.id, 'quantity', e.target.value)}
-              />
-              <Input
-                type="number"
-                placeholder="$0.00"
-                className="text-sm"
-                value={li.unit_price}
-                onChange={e => updateLineItem(li.id, 'unit_price', e.target.value)}
-              />
-              <span className="text-sm text-right text-foreground font-medium">
-                ${lineTotal(li).toFixed(2)}
-              </span>
-              <Button
-                variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"
-                onClick={() => removeLineItem(li.id)}
-                disabled={lineItems.length === 1}
-              >
-                <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
-              </Button>
+            <div key={li.id}>
+              {/* Desktop grid view */}
+              <div className="hidden md:grid grid-cols-[1fr_70px_100px_90px_32px] gap-2 items-center">
+                <Input
+                  placeholder="Description (e.g. Deep Clean, Oven Clean...)"
+                  className="text-sm"
+                  value={li.description}
+                  onChange={e => updateLineItem(li.id, 'description', e.target.value)}
+                />
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="1"
+                  className="text-sm"
+                  value={li.quantity}
+                  onChange={e => updateLineItem(li.id, 'quantity', e.target.value)}
+                />
+                <Input
+                  type="number"
+                  placeholder="$0.00"
+                  className="text-sm"
+                  value={li.unit_price}
+                  onChange={e => updateLineItem(li.id, 'unit_price', e.target.value)}
+                />
+                <span className="text-sm text-right text-foreground font-medium">
+                  ${lineTotal(li).toFixed(2)}
+                </span>
+                <Button
+                  variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"
+                  onClick={() => removeLineItem(li.id)}
+                  disabled={lineItems.length === 1}
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+                </Button>
+              </div>
+              {/* Mobile card view */}
+              <div className="md:hidden p-3 rounded-lg border border-border space-y-2">
+                <Input
+                  placeholder="Description (e.g. Deep Clean, Oven Clean...)"
+                  className="text-sm"
+                  value={li.description}
+                  onChange={e => updateLineItem(li.id, 'description', e.target.value)}
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase">Qty</span>
+                    <Input
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="1"
+                      className="text-sm"
+                      value={li.quantity}
+                      onChange={e => updateLineItem(li.id, 'quantity', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase">Unit $</span>
+                    <Input
+                      type="number"
+                      placeholder="$0.00"
+                      className="text-sm"
+                      value={li.unit_price}
+                      onChange={e => updateLineItem(li.id, 'unit_price', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase">Total</span>
+                    <p className="text-sm font-medium text-foreground pt-2">
+                      ${lineTotal(li).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost" size="sm" className="h-8 w-full text-destructive hover:text-destructive"
+                  onClick={() => removeLineItem(li.id)}
+                  disabled={lineItems.length === 1}
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -757,7 +806,7 @@ export default function Invoices() {
   }, {});
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       {/* Preview Modal */}
       {previewInvoice && (
         <InvoicePreviewModal
@@ -771,7 +820,7 @@ export default function Invoices() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">Invoices</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Create, manage and preview invoices</p>
@@ -786,7 +835,7 @@ export default function Invoices() {
 
       {/* Payments Status — honest, real state (no fake "connected" claims) */}
       <Card className="border border-border bg-muted/30">
-        <CardContent className="p-4 flex items-start justify-between gap-4">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-foreground">Online Payments — Setup required</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
@@ -804,7 +853,7 @@ export default function Invoices() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {['draft', 'sent', 'paid', 'overdue'].map(status => (
           <Card key={status} className="border border-border">
             <CardContent className="p-4">
@@ -861,47 +910,50 @@ export default function Invoices() {
                 const client = clients.find(c => c.id === inv.client_id);
                 return (
                   <div key={inv.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/40 transition-colors">
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/40 transition-colors gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-semibold text-foreground">#{inv.invoice_number}</span>
                         <Badge className={`text-[10px] px-1.5 ${STATUS_COLORS[inv.status] || ''}`}>
                           {inv.status}
                         </Badge>
+                        <span className="text-sm font-bold text-foreground sm:hidden">
+                          ${parseFloat(inv.total_amount || 0).toFixed(2)}
+                        </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {client?.name || 'Unknown Client'} · {inv.service_type || '—'} · Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-AU') : '—'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 ml-4">
-                      <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                      <span className="text-sm font-bold text-foreground whitespace-nowrap hidden sm:inline">
                         ${parseFloat(inv.total_amount || 0).toFixed(2)}
                       </span>
                       {inv.status === 'paid' ? (
                         <Button size="sm" variant="ghost"
                           onClick={() => handleMarkUnpaid(inv)}
                           title={inv.paid_at ? `Paid ${new Date(inv.paid_at).toLocaleDateString('en-AU')} · click to undo` : 'Click to undo'}
-                          className="flex items-center gap-1 text-xs h-7 px-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700">
+                          className="flex items-center gap-1 text-xs h-8 px-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700">
                           <Undo2 className="w-3 h-3" /> Paid
                         </Button>
                       ) : (
                         <Button size="sm" variant="outline"
                           onClick={() => handleMarkPaid(inv)}
-                          className="flex items-center gap-1 text-xs h-7 px-2 border-emerald-600/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/10">
+                          className="flex items-center gap-1 text-xs h-8 px-2 border-emerald-600/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600/10">
                           <CheckCircle2 className="w-3 h-3" /> Mark Paid
                         </Button>
                       )}
                       <Button size="sm" variant="outline"
                         onClick={() => openPreview(inv)}
-                        className="flex items-center gap-1 text-xs h-7 px-2">
+                        className="flex items-center gap-1 text-xs h-8 px-2">
                         <Eye className="w-3 h-3" /> Preview
                       </Button>
                       <Button size="sm" variant="ghost"
                         onClick={() => { setEditingInvoice(inv); setShowForm(true); }}
-                        className="text-xs h-7 px-2">Edit</Button>
+                        className="text-xs h-8 px-2">Edit</Button>
                       <Button size="sm" variant="ghost"
                         onClick={() => handleDelete(inv.id)}
-                        className="text-xs h-7 px-2 text-destructive hover:text-destructive">
+                        className="text-xs h-8 px-2 text-destructive hover:text-destructive">
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>

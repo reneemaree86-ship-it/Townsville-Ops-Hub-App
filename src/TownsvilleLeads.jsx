@@ -44,9 +44,9 @@ export default function TownsvilleLeads() {
       <PageHeader title="Townsville Leads by Suburb" description="Leads grouped by location" business={activeBusiness} />
       <div className="flex gap-2 flex-wrap">
         <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="h-8 text-xs max-w-xs" />
-        <Button variant={!suburbFilter ? 'default' : 'outline'} size="sm" className="text-xs h-8" onClick={() => setSuburbFilter('')}>All</Button>
+        <Button variant={!suburbFilter ? 'default' : 'outline'} size="sm" className="text-xs h-8 px-3" onClick={() => setSuburbFilter('')}>All</Button>
         {suburbsWithLeads.map(s => (
-          <Button key={s} variant={suburbFilter === s ? 'default' : 'outline'} size="sm" className="text-xs h-8" onClick={() => setSuburbFilter(suburbFilter === s ? '' : s)}>
+          <Button key={s} variant={suburbFilter === s ? 'default' : 'outline'} size="sm" className="text-xs h-8 px-3" onClick={() => setSuburbFilter(suburbFilter === s ? '' : s)}>
             {s} <span className="ml-1 opacity-60">({bySuburb[s].length})</span>
           </Button>
         ))}
@@ -76,7 +76,7 @@ export default function TownsvilleLeads() {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <StatusBadge status={lead.urgency} />
                         <StatusBadge status={lead.status} />
-                        {lead.status === 'New' && lead.urgency !== 'Hot - Urgent' && <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => updateMutation.mutate({ id: lead.id, data: { urgency: 'Hot - Urgent' } })}>Mark Urgent</Button>}
+                        {lead.status === 'New' && lead.urgency !== 'Hot - Urgent' && <Button size="sm" variant="outline" className="h-8 text-[10px] px-2" onClick={() => updateMutation.mutate({ id: lead.id, data: { urgency: 'Hot - Urgent' } })}>Mark Urgent</Button>}
                       </div>
                     </div>
                   ))}

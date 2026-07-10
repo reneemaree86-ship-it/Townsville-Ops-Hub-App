@@ -173,7 +173,7 @@ export default function Clients() {
   // No active business — show empty state instead of crashing
   if (!activeBusiness) {
     return (
-      <div className="p-4 lg:p-6">
+      <div className="p-4 md:p-6">
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
             No business selected. Please select or create a business first.
@@ -184,7 +184,7 @@ export default function Clients() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">Clients</h1>

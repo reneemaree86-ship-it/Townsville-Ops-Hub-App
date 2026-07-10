@@ -74,7 +74,7 @@ export default function Dashboard() {
         business={activeBusiness}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Active Leads" value={leads.filter(l => !['won','lost','not_suitable'].includes(l.status)).length} icon={UserSearch} color="text-primary" subtext={`${hotLeads.length} hot`} />
         <StatCard label="SEO Audits" value={audits.length} icon={Search} color="text-blue-500" subtext={lastAudit ? `Last: ${lastAudit.issues_found} issues` : 'None yet'} />
         <StatCard label="Open Errors" value={openErrors.length} icon={AlertTriangle} color="text-red-500" subtext={`${errors.filter(e => e.severity === 'critical').length} critical`} />
