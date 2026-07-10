@@ -50,7 +50,7 @@ const KNOWN_PLATFORM_DEFAULTS = [
   { platform: 'instagram', notes: 'Requires Instagram/Meta OAuth for DMs and lead monitoring.' },
 ];
 
-const empty = { platform: '', status: 'pending', account_label: '', notes: '', error_message: '', business_id: '' };
+const empty = { platform_name: '', connection_status: 'requires_authorised_connection', connection_type: 'oauth', account_label: '', notes: '', error_message: '', business_id: '' };
 
 const FB_APP_ID = '1836147090686861';
 const FB_SCOPES = 'pages_show_list,leads_retrieval,pages_messaging,pages_read_engagement,pages_manage_metadata,pages_utility_messaging,business_management';
@@ -286,18 +286,26 @@ export default function PlatformStatus() {
     if (!form.platform) return;
     const data = {
       platform: form.platform,
-      status: form.status,
+      connection_status: form.connection_status,
       account_label: form.account_label,
       notes: form.notes,
-      error_message: form.status === 'error' ? form.error_message : '',
+      error_message: form.connection_status === 'error' ? form.error_message : '',
     };
     if (editing) updateMutation.mutate({ id: editing.id, data });
     else createMutation.mutate(data);
   };
 
   const nonFacebookConnections = connections.filter(c => c.platform_name !== 'Facebook');
-  const connectedCount = connections.filter(c => c.status === 'connected').length;
-  const issueCount = connections.filter(c => c.status !== 'connected').length;
+  // Deduplicate by platform_name — keep the most recently updated record
+  const deduped = Object.values(
+    connections.reduce((acc, c) => {
+      const key = c.platform_name;
+      if (!acc[key] || new Date(c.updated_date) > new Date(acc[key].updated_date)) acc[key] = c;
+      return acc;
+    }, {})
+  );
+  const connectedCount = deduped.filter(c => ['connected','manual_monitoring_only','fallback_active'].includes(c.connection_status)).length;
+  const issueCount = deduped.filter(c => ['requires_authorised_connection','error','terms_restricted'].includes(c.connection_status)).length;
 
   const availablePresets = KNOWN_PLATFORM_DEFAULTS.filter(
     p => !connections.some(c => c.platform === p.platform)
@@ -360,7 +368,7 @@ export default function PlatformStatus() {
           <Card key={conn.id}>
             <CardContent className="p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                {conn.status === 'connected'
+                {conn.connection_status === 'connected'
                   ? <Wifi className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                   : <WifiOff className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
                 <div className="min-w-0">
@@ -369,7 +377,7 @@ export default function PlatformStatus() {
                     {conn.account_label && <span className="text-[10px] text-muted-foreground">· {conn.account_label}</span>}
                   </div>
                   {conn.notes && <p className="text-[10px] text-muted-foreground mt-0.5 max-w-xl">{conn.notes}</p>}
-                  {conn.status === 'error' && conn.error_message && (
+                  {conn.connection_status === 'error' && conn.error_message && (
                     <p className="text-[10px] text-red-500 mt-0.5">Error: {conn.error_message}</p>
                   )}
                   <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -379,7 +387,7 @@ export default function PlatformStatus() {
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <StatusBadge status={conn.status} />
+                <StatusBadge status={conn.connection_status} />
                 <Button size="icon" variant="ghost" className="h-7 w-7" title="Refresh check timestamp" onClick={() => refreshCheckMutation.mutate(conn)}>
                   <RefreshCw className="w-3.5 h-3.5" />
                 </Button>
@@ -411,7 +419,7 @@ export default function PlatformStatus() {
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block">Status</label>
-                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <Select value={form.connection_status} onValueChange={v => setForm(f => ({ ...f, connection_status: v }))}>
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {STATUS_OPTIONS.map(s => (
@@ -425,7 +433,7 @@ export default function PlatformStatus() {
               <label className="text-xs font-medium mb-1 block">Account Label</label>
               <Input value={form.account_label} onChange={e => setForm(f => ({ ...f, account_label: e.target.value }))} placeholder="e.g. reneescleaningservices.tsv@gmail.com" className="h-8 text-xs" />
             </div>
-            {form.status === 'error' && (
+            {form.connection_status === 'error' && (
               <div>
                 <label className="text-xs font-medium mb-1 block">Error Message</label>
                 <Input value={form.error_message} onChange={e => setForm(f => ({ ...f, error_message: e.target.value }))} placeholder="What's going wrong" className="h-8 text-xs" />
