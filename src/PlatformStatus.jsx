@@ -66,7 +66,7 @@ function FacebookConnectCard({ bid }) {
   const { data: fbConnection } = useQuery({
     queryKey: ['platform-connections', 'facebook'],
     queryFn: async () => {
-      const all = await base44.entities.PlatformConnection.filter({ platform: 'facebook' });
+      const all = await base44.entities.PlatformConnection.filter({ platform_name: 'Facebook' });
       return all?.[0] || null;
     },
   });
@@ -113,21 +113,23 @@ function FacebookConnectCard({ bid }) {
       const res = result?.data ?? result;
 
       // Step 2: Write the PlatformConnection record to THIS app's (Ops Hub) database
+      // Use the live Ops Hub PlatformConnection field names:
+      // platform_name, connection_status, connection_type, last_checked
       const connectionData = {
         business_id: bid || null,
-        platform: 'facebook',
-        status: 'connected',
-        external_id: page.id,
+        platform_name: 'Facebook',
+        connection_type: 'oauth',
+        connection_status: 'connected',
         account_label: page.name,
+        external_id: page.id,
         access_token: page.access_token,
         token_expires_at: res?.token_expires_at || null,
-        scopes: res?.scopes || [],
-        notes: `Connected ${new Date().toISOString()}. Webhooks: ${res?.webhooks_subscribed ?? false}. Fans: ${res?.fan_count ?? 'unknown'}.`,
-        last_successful_at: new Date().toISOString(),
-        last_checked_at: new Date().toISOString(),
+        scopes: (res?.scopes || []).join(','),
+        notes: `Connected ${new Date().toISOString()}. Page: ${page.name} (${page.id}). Webhooks: ${res?.webhooks_subscribed ?? false}. Fans: ${res?.fan_count ?? 'unknown'}.`,
+        last_checked: new Date().toISOString(),
         error_message: null,
       };
-      const existing = await base44.entities.PlatformConnection.filter({ platform: 'facebook', external_id: page.id });
+      const existing = await base44.entities.PlatformConnection.filter({ platform_name: 'Facebook', external_id: page.id });
       if (existing?.length > 0) {
         await base44.entities.PlatformConnection.update(existing[0].id, connectionData);
       } else {
@@ -152,7 +154,7 @@ function FacebookConnectCard({ bid }) {
     window.location.href = url;
   };
 
-  const isConnected = fbConnection?.status === 'connected';
+  const isConnected = fbConnection?.connection_status === 'connected';
 
   return (
     <Card className={isConnected ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-blue-500/30 bg-blue-500/5'}>
@@ -162,19 +164,19 @@ function FacebookConnectCard({ bid }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium">Facebook Login</p>
-              {fbConnection && <StatusBadge status={fbConnection.status} />}
+              {fbConnection && <StatusBadge status={fbConnection.connection_status} />}
             </div>
             {isConnected ? (
               <p className="text-xs text-muted-foreground mt-0.5">
                 Connected Page: <span className="font-medium">{fbConnection.account_label}</span>
-                {fbConnection.last_successful_at && ` · since ${format(new Date(fbConnection.last_successful_at), 'dd MMM yyyy HH:mm')}`}
+                {fbConnection.last_checked && ` · since ${format(new Date(fbConnection.last_checked), 'dd MMM yyyy HH:mm')}`}
               </p>
             ) : (
               <p className="text-xs text-muted-foreground mt-0.5">
                 Connect your Renee's Cleaning Services Facebook Page to receive Lead Ads and Messenger messages directly in the Business Inbox.
               </p>
             )}
-            {fbConnection?.status === 'error' && fbConnection.error_message && (
+            {fbConnection?.connection_status === 'error' && fbConnection.error_message && (
               <p className="text-[10px] text-red-500 mt-0.5">Error: {fbConnection.error_message}</p>
             )}
           </div>
@@ -256,7 +258,7 @@ export default function PlatformStatus() {
     mutationFn: (conn) => {
       const now = new Date().toISOString();
       const patch = { last_checked_at: now };
-      if (conn.status === 'connected') patch.last_successful_at = now;
+      if (conn.connection_status === 'connected') patch.last_checked = now;
       return base44.entities.PlatformConnection.update(conn.id, patch);
     },
     onSuccess: invalidate,
@@ -266,7 +268,7 @@ export default function PlatformStatus() {
     setEditing(conn);
     setForm({
       platform: conn.platform || '',
-      status: conn.status || 'pending',
+      connection_status: conn.connection_status || 'pending',
       account_label: conn.account_label || '',
       notes: conn.notes || '',
       error_message: conn.error_message || '',
@@ -293,7 +295,7 @@ export default function PlatformStatus() {
     else createMutation.mutate(data);
   };
 
-  const nonFacebookConnections = connections.filter(c => c.platform !== 'facebook');
+  const nonFacebookConnections = connections.filter(c => c.platform_name !== 'Facebook');
   const connectedCount = connections.filter(c => c.status === 'connected').length;
   const issueCount = connections.filter(c => c.status !== 'connected').length;
 
