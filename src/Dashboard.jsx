@@ -61,8 +61,8 @@ export default function Dashboard() {
     return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading businesses...</div>;
   }
 
-  const hotLeads = leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'urgent');
-  const followUps = leads.filter(l => !!l.follow_up_due_at && !['converted','closed','rejected'].includes(l.status));
+  const hotLeads = leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'Hot - Urgent');
+  const followUps = leads.filter(l => !!l.follow_up_due_at && !['Booked','Lost','Spam'].includes(l.status));
   const openErrors = errors.filter(e => e.fix_status !== 'fixed');
   const lastAudit = audits[0];
 
@@ -75,7 +75,7 @@ export default function Dashboard() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Active Leads" value={leads.filter(l => !['converted','closed','rejected'].includes(l.status)).length} icon={UserSearch} color="text-primary" subtext={`${hotLeads.length} hot`} />
+        <StatCard label="Active Leads" value={leads.filter(l => !['Booked','Lost','Spam'].includes(l.status)).length} icon={UserSearch} color="text-primary" subtext={`${hotLeads.length} hot`} />
         <StatCard label="SEO Audits" value={audits.length} icon={Search} color="text-blue-500" subtext={lastAudit ? `Last: ${lastAudit.issues_found} issues` : 'None yet'} />
         <StatCard label="Open Errors" value={openErrors.length} icon={AlertTriangle} color="text-red-500" subtext={`${errors.filter(e => e.severity === 'critical').length} critical`} />
         <StatCard label="Follow-ups Due" value={followUps.length} icon={Clock} color="text-amber-500" subtext={`${followUps.filter(f => new Date(f.follow_up_due_at) < new Date()).length} overdue`} />
@@ -96,8 +96,8 @@ export default function Dashboard() {
               hotLeads.slice(0, 5).map(lead => (
                 <div key={lead.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/50">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{lead.service_type}</p>
-                    <p className="text-[10px] text-muted-foreground">{lead.suburb} {lead.source_platform ? `· ${lead.source_platform}` : ''}</p>
+                    <p className="text-xs font-medium truncate">{lead.service_requested}</p>
+                    <p className="text-[10px] text-muted-foreground">{lead.suburb} {lead.source ? `· ${lead.source}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-primary">{lead.lead_score ?? '-'}/100</span>

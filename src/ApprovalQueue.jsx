@@ -15,7 +15,7 @@ export default function ApprovalQueue() {
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads-approval', bid],
-    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid, status: 'needs_approval' }) : [],
+    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid, status: 'New', manual_approval_required: true }) : [],
     enabled: !!bid,
   });
   const { data: adDrafts = [] } = useQuery({
@@ -50,13 +50,13 @@ export default function ApprovalQueue() {
               <div key={lead.id} className="p-3 rounded-lg bg-muted/40 border border-border/50">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium">{lead.service_type}</p>
-                    <p className="text-[10px] text-muted-foreground">{lead.suburb} via {lead.source_platform} — Score: {lead.lead_score ?? '-'}/100</p>
+                    <p className="text-xs font-medium">{lead.service_requested}</p>
+                    <p className="text-[10px] text-muted-foreground">{lead.suburb} via {lead.source} — Score: {lead.lead_score ?? '-'}/100</p>
                     {lead.response_draft && <p className="text-[10px] bg-card p-2 rounded mt-2 whitespace-pre-wrap">{lead.response_draft}</p>}
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
-                    <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 text-emerald-600" onClick={() => updateLeadMutation.mutate({ id: lead.id, data: { status: 'contacted' } })}><Check className="w-3 h-3" /> Approve</Button>
-                    <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 text-red-500" onClick={() => updateLeadMutation.mutate({ id: lead.id, data: { status: 'rejected' } })}><X className="w-3 h-3" /> Reject</Button>
+                    <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 text-emerald-600" onClick={() => updateLeadMutation.mutate({ id: lead.id, data: { status: 'Contacted' } })}><Check className="w-3 h-3" /> Approve</Button>
+                    <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 text-red-500" onClick={() => updateLeadMutation.mutate({ id: lead.id, data: { status: 'Lost' } })}><X className="w-3 h-3" /> Reject</Button>
                   </div>
                 </div>
               </div>
@@ -74,8 +74,8 @@ export default function ApprovalQueue() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium capitalize">{ad.platform?.replace(/_/g, ' ')}</p>
-                    {ad.copy_headline && <p className="text-xs mt-1">{ad.copy_headline}</p>}
-                    {ad.copy_body && <p className="text-[10px] text-muted-foreground">{ad.copy_body}</p>}
+                    {ad.short_description && <p className="text-xs mt-1">{ad.short_description}</p>}
+                    {ad.long_description && <p className="text-[10px] text-muted-foreground">{ad.long_description}</p>}
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
                     <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 text-emerald-600" onClick={() => updateAdMutation.mutate({ id: ad.id, data: { status: 'approved' } })}><Check className="w-3 h-3" /> Approve</Button>

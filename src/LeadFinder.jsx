@@ -17,13 +17,13 @@ import LeadDetailModal from '@/LeadDetailModal';
 import ScanLogPanel from '@/ScanLogPanel';
 import { UserSearch, Loader2, Plus, Clipboard, Search, Flame, AlertTriangle, CheckCircle2, XCircle, Settings } from 'lucide-react';
 
-const STATUS_FILTERS = ['all','new','scored','needs_approval','draft_ready','contacted','follow_up_due','converted','closed','rejected'];
+const STATUS_FILTERS = ['all','New','Contacted','Qualified','Quote Sent','Booked','Lost','Spam'];
 
 const URGENCY_OPTIONS = [
-  { value: 'flexible', label: 'Flexible' },
-  { value: 'this_week', label: 'This Week' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'unknown', label: 'Unknown' },
+  { value: 'Hot - Urgent', label: 'Hot - Urgent' },
+  { value: 'Warm - This Week', label: 'Warm - This Week' },
+  { value: 'Cool - Flexible', label: 'Cool - Flexible' },
+  { value: 'Tyre Kicker', label: 'Tyre Kicker' },
 ];
 
 export default function LeadFinder() {
@@ -41,7 +41,7 @@ export default function LeadFinder() {
   const [latestScanLog, setLatestScanLog] = useState(null);
   const emptyManualForm = {
     name: '', contact_phone: '', contact_email: '',
-    service_type: '', suburb: '', urgency: 'unknown',
+    service_requested: '', suburb: '', urgency: 'Tyre Kicker',
     notes: '', source_url: '',
   };
   const [manualForm, setManualForm] = useState(emptyManualForm);
@@ -87,9 +87,9 @@ export default function LeadFinder() {
     mutationFn: (data) => base44.entities.Lead.create({
       ...data,
       business_id: bid,
-      source_platform: 'Manual Entry',
+      source: 'Manual Entry',
       lead_score: 50,
-      status: 'new',
+      status: 'New',
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['leads'] }); setImportOpen(false); setManualForm(emptyManualForm); },
   });
@@ -146,7 +146,7 @@ export default function LeadFinder() {
                       <CardContent className="p-3 space-y-2 text-xs">
                         <div className="grid grid-cols-2 gap-2">
                           <div><span className="text-muted-foreground">Name:</span> {parsedResult.name || 'Unknown'}</div>
-                          <div><span className="text-muted-foreground">Service:</span> {parsedResult.service_type}</div>
+                          <div><span className="text-muted-foreground">Service:</span> {parsedResult.service_requested}</div>
                           <div><span className="text-muted-foreground">Suburb:</span> {parsedResult.suburb || 'Not specified'}</div>
                           <div><span className="text-muted-foreground">Score:</span> <strong>{parsedResult.lead_score}/100</strong></div>
                           <div><span className="text-muted-foreground">Urgency:</span> <StatusBadge status={parsedResult.urgency} /></div>
@@ -166,17 +166,17 @@ export default function LeadFinder() {
                         <Button size="sm" className="w-full" disabled={saveParsedMutation.isPending} onClick={() => saveParsedMutation.mutate({
                           business_id: bid,
                           name: parsedResult.name || 'Unknown',
-                          source_platform: pasteSource,
-                          service_type: parsedResult.service_type || 'Cleaning',
+                          source: pasteSource,
+                          service_requested: parsedResult.service_requested || 'Cleaning',
                           suburb: parsedResult.suburb || '',
-                          urgency: ['flexible','this_week','urgent','unknown'].includes(parsedResult.urgency) ? parsedResult.urgency : 'unknown',
-                          original_text: pasteText,
+                          urgency: ['Hot - Urgent','Warm - This Week','Cool - Flexible','Tyre Kicker'].includes(parsedResult.urgency) ? parsedResult.urgency : 'Tyre Kicker',
+                          job_details: pasteText,
                           budget_clues: parsedResult.budget_clues || '',
                           contact_phone: parsedResult.contact_phone || '',
                           contact_email: parsedResult.contact_email || '',
                           lead_score: parsedResult.lead_score || 50,
                           score_rationale: parsedResult.score_rationale || '',
-                          status: 'new',
+                          status: 'New',
                           response_draft: parsedResult.response_draft || '',
                           manual_approval_required: !!parsedResult.manual_approval_required,
                           manual_approval_reason: parsedResult.manual_approval_required ? 'Flagged by AI parser -- review before contacting.' : '',
@@ -204,7 +204,7 @@ export default function LeadFinder() {
                     <div><Label className="text-xs">Contact Phone</Label><Input value={manualForm.contact_phone} onChange={e => setManualForm({...manualForm, contact_phone: e.target.value})} className="h-8 text-xs mt-1" /></div>
                     <div><Label className="text-xs">Contact Email</Label><Input value={manualForm.contact_email} onChange={e => setManualForm({...manualForm, contact_email: e.target.value})} className="h-8 text-xs mt-1" /></div>
                   </div>
-                  <div><Label className="text-xs">Service Needed</Label><Input value={manualForm.service_type} onChange={e => setManualForm({...manualForm, service_type: e.target.value})} className="h-8 text-xs mt-1" placeholder="e.g. Weekly Cleaning, Deep Clean, Bond Clean" /></div>
+                  <div><Label className="text-xs">Service Needed</Label><Input value={manualForm.service_requested} onChange={e => setManualForm({...manualForm, service_requested: e.target.value})} className="h-8 text-xs mt-1" placeholder="e.g. Weekly Cleaning, Deep Clean, Bond Clean" /></div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs">Urgency</Label>
@@ -219,7 +219,7 @@ export default function LeadFinder() {
                   </div>
                   <div><Label className="text-xs">Source URL</Label><Input value={manualForm.source_url} onChange={e => setManualForm({...manualForm, source_url: e.target.value})} className="h-8 text-xs mt-1" /></div>
                   <div><Label className="text-xs">Notes</Label><Textarea value={manualForm.notes} onChange={e => setManualForm({...manualForm, notes: e.target.value})} rows={3} className="text-xs mt-1" /></div>
-                  <Button className="w-full" onClick={() => saveManualMutation.mutate(manualForm)} disabled={saveManualMutation.isPending || !manualForm.service_type}>
+                  <Button className="w-full" onClick={() => saveManualMutation.mutate(manualForm)} disabled={saveManualMutation.isPending || !manualForm.service_requested}>
                     {saveManualMutation.isPending ? 'Saving...' : 'Save Lead'}
                   </Button>
                 </div>
@@ -272,9 +272,9 @@ export default function LeadFinder() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Total Leads" value={leads.length} icon={UserSearch} />
-        <StatCard label="Hot Leads" value={leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'urgent').length} icon={Flame} color="text-orange-500" />
-        <StatCard label="New" value={leads.filter(l => l.status === 'new').length} icon={Plus} color="text-blue-500" />
-        <StatCard label="Won" value={leads.filter(l => l.status === 'converted').length} icon={Search} color="text-emerald-500" />
+        <StatCard label="Hot Leads" value={leads.filter(l => (l.lead_score || 0) >= 70 || l.urgency === 'Hot - Urgent').length} icon={Flame} color="text-orange-500" />
+        <StatCard label="New" value={leads.filter(l => l.status === 'New').length} icon={Plus} color="text-blue-500" />
+        <StatCard label="Won" value={leads.filter(l => l.status === 'Booked').length} icon={Search} color="text-emerald-500" />
       </div>
 
       <ScanLogPanel scanLog={latestScanLog} scans={scans} />
@@ -308,18 +308,18 @@ export default function LeadFinder() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                   <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold truncate">{lead.service_type}</span>
+                      <span className="text-sm font-semibold truncate">{lead.service_requested}</span>
                       <StatusBadge status={lead.status} />
                       <StatusBadge status={lead.urgency} />
                     </div>
                     <div className="flex gap-3 text-[10px] text-muted-foreground flex-wrap">
                       {lead.name && lead.name !== 'Unknown' && <span className="font-medium">{lead.name}</span>}
                       {lead.suburb && <span>{lead.suburb}</span>}
-                      {lead.source_platform && <span>via {lead.source_platform}</span>}
+                      {lead.source && <span>via {lead.source}</span>}
                       <span>Score: {lead.lead_score ?? '-'}/100</span>
                     </div>
-                    {lead.original_text && (
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">{lead.original_text}</p>
+                    {lead.job_details && (
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">{lead.job_details}</p>
                     )}
                   </div>
                   <div className="text-[10px] text-muted-foreground flex-shrink-0">

@@ -58,9 +58,20 @@ const statusStyles = {
   contacted: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
   converted: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
   closed: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+  'New': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  'Contacted': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  'Qualified': 'bg-violet-500/10 text-violet-600 border-violet-500/20',
+  'Quote Sent': 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+  'Booked': 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
+  'Lost': 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  'Spam': 'bg-gray-500/10 text-gray-500 border-gray-500/20',
   this_week: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   flexible: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
   unknown: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+  'Hot - Urgent': 'bg-red-500/10 text-red-600 border-red-500/20',
+  'Warm - This Week': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  'Cool - Flexible': 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+  'Tyre Kicker': 'bg-gray-500/10 text-gray-500 border-gray-500/20',
 };
 
 export default function StatusBadge({ status, className = '' }) {

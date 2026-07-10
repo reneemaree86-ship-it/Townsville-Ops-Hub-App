@@ -32,11 +32,10 @@ const PLATFORM_ICONS = {
 };
 
 const STATUS_BADGE = {
-  new: { label: 'New', className: 'bg-primary text-primary-foreground' },
-  contacted: { label: 'Contacted', className: 'bg-secondary text-secondary-foreground' },
-  quoted: { label: 'Quoted', className: 'border border-amber-500 text-amber-600' },
-  converted: { label: 'Booked', className: 'border border-emerald-500 text-emerald-600' },
-  needs_approval: { label: 'Needs Approval', className: 'bg-destructive text-destructive-foreground' },
+  'New': { label: 'New', className: 'bg-primary text-primary-foreground' },
+  'Contacted': { label: 'Contacted', className: 'bg-secondary text-secondary-foreground' },
+  'Quote Sent': { label: 'Quote Sent', className: 'border border-amber-500 text-amber-600' },
+  'Booked': { label: 'Booked', className: 'border border-emerald-500 text-emerald-600' },
 };
 
 function initials(name) {
@@ -80,13 +79,13 @@ export default function BusinessInbox() {
   const threads = useMemo(() => leads.map(l => ({
     id: l.id,
     name: l.name || 'Unknown enquiry',
-    platform: l.source_platform || 'direct',
-    last_message: l.original_text || '(no message text captured)',
+    platform: l.source || 'direct',
+    last_message: l.job_details || '(no message text captured)',
     time: l.created_date ? new Date(l.created_date) : new Date(),
-    unread: l.status === 'new',
+    unread: l.status === 'New',
     status: l.status,
     suburb: l.suburb,
-    service: l.service_type,
+    service: l.service_requested,
     contact_email: l.contact_email,
     contact_phone: l.contact_phone,
     notes: l.notes,
@@ -158,8 +157,8 @@ export default function BusinessInbox() {
               <TabsList className="h-7 w-full grid grid-cols-4 text-[10px]">
                 <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
                 <TabsTrigger value="unread" className="text-[10px]">Unread</TabsTrigger>
-                <TabsTrigger value="contacted" className="text-[10px]">Contacted</TabsTrigger>
-                <TabsTrigger value="converted" className="text-[10px]">Booked</TabsTrigger>
+                <TabsTrigger value="Contacted" className="text-[10px]">Contacted</TabsTrigger>
+                <TabsTrigger value="Booked" className="text-[10px]">Booked</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -203,7 +202,7 @@ export default function BusinessInbox() {
                         <div className="flex items-center gap-1">
                           {thread.suburb && <span className="text-[10px] text-muted-foreground">{thread.suburb}</span>}
                           {thread.suburb && <span className="text-[10px] text-muted-foreground">·</span>}
-                          <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[thread.status] || STATUS_BADGE.new).className}`}>
+                          <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[thread.status] || STATUS_BADGE['New']).className}`}>
                             {(STATUS_BADGE[thread.status] || { label: thread.status }).label}
                           </Badge>
                         </div>
@@ -228,7 +227,7 @@ export default function BusinessInbox() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-sm text-foreground">{selectedThread.name}</h3>
-                    <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[selectedThread.status] || STATUS_BADGE.new).className}`}>
+                    <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[selectedThread.status] || STATUS_BADGE['New']).className}`}>
                       {(STATUS_BADGE[selectedThread.status] || { label: selectedThread.status }).label}
                     </Badge>
                   </div>

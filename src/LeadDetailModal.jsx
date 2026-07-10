@@ -14,22 +14,20 @@ import StatusBadge from '@/StatusBadge';
 import { Copy, ExternalLink, CheckCircle2 } from 'lucide-react';
 
 const STATUSES = [
-  { value: 'new', label: 'New' },
-  { value: 'scored', label: 'Scored' },
-  { value: 'needs_approval', label: 'Needs Approval' },
-  { value: 'draft_ready', label: 'Draft Ready' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'follow_up_due', label: 'Follow-Up Due' },
-  { value: 'converted', label: 'Converted (Won)' },
-  { value: 'closed', label: 'Closed (Lost)' },
-  { value: 'rejected', label: 'Rejected (Not Suitable)' },
+  { value: 'New', label: 'New' },
+  { value: 'Contacted', label: 'Contacted' },
+  { value: 'Qualified', label: 'Qualified' },
+  { value: 'Quote Sent', label: 'Quote Sent' },
+  { value: 'Booked', label: 'Booked' },
+  { value: 'Lost', label: 'Lost' },
+  { value: 'Spam', label: 'Spam' },
 ];
 
 const URGENCY_OPTIONS = [
-  { value: 'flexible', label: 'Flexible' },
-  { value: 'this_week', label: 'This Week' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'unknown', label: 'Unknown' },
+  { value: 'Hot - Urgent', label: 'Hot - Urgent' },
+  { value: 'Warm - This Week', label: 'Warm - This Week' },
+  { value: 'Cool - Flexible', label: 'Cool - Flexible' },
+  { value: 'Tyre Kicker', label: 'Tyre Kicker' },
 ];
 
 export default function LeadDetailModal({ lead, onClose }) {
@@ -39,9 +37,9 @@ export default function LeadDetailModal({ lead, onClose }) {
     contact_phone: lead.contact_phone || '',
     contact_email: lead.contact_email || '',
     suburb: lead.suburb || '',
-    service_type: lead.service_type || '',
-    urgency: lead.urgency || 'unknown',
-    status: lead.status || 'new',
+    service_requested: lead.service_requested || '',
+    urgency: lead.urgency || 'Tyre Kicker',
+    status: lead.status || 'New',
     notes: lead.notes || '',
     response_draft: lead.response_draft || '',
     manual_approval_required: !!lead.manual_approval_required,
@@ -65,7 +63,7 @@ export default function LeadDetailModal({ lead, onClose }) {
   const scheduleFollowUpMutation = useMutation({
     mutationFn: () => base44.entities.Lead.update(lead.id, {
       follow_up_due_at: form.follow_up_due_at ? new Date(form.follow_up_due_at + 'T09:00:00').toISOString() : null,
-      status: form.follow_up_due_at ? 'follow_up_due' : form.status,
+      status: form.follow_up_due_at ? 'Contacted' : form.status,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['leads'] });
@@ -109,7 +107,7 @@ export default function LeadDetailModal({ lead, onClose }) {
               <div><Label className="text-xs">Contact Phone</Label><Input value={form.contact_phone} onChange={e => setForm({...form, contact_phone: e.target.value})} className="h-8 text-xs mt-1" /></div>
               <div><Label className="text-xs">Contact Email</Label><Input value={form.contact_email} onChange={e => setForm({...form, contact_email: e.target.value})} className="h-8 text-xs mt-1" /></div>
             </div>
-            <div><Label className="text-xs">Service Needed</Label><Input value={form.service_type} onChange={e => setForm({...form, service_type: e.target.value})} className="h-8 text-xs mt-1" /></div>
+            <div><Label className="text-xs">Service Needed</Label><Input value={form.service_requested} onChange={e => setForm({...form, service_requested: e.target.value})} className="h-8 text-xs mt-1" /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Urgency</Label>
@@ -144,11 +142,11 @@ export default function LeadDetailModal({ lead, onClose }) {
               <Input value={form.manual_approval_reason} onChange={e => setForm({...form, manual_approval_reason: e.target.value})} className="h-8 text-xs" placeholder="Reason for manual approval..." />
             )}
 
-            {lead.original_text && (
+            {lead.job_details && (
               <Card className="bg-muted/40">
                 <CardContent className="p-3">
                   <p className="text-[10px] text-muted-foreground font-medium mb-1">Original Post</p>
-                  <p className="text-[10px]">{lead.original_text}</p>
+                  <p className="text-[10px]">{lead.job_details}</p>
                   {lead.source_url && (
                     <a href={lead.source_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary flex items-center gap-1 mt-1">
                       <ExternalLink className="w-3 h-3" /> View source
@@ -173,7 +171,7 @@ export default function LeadDetailModal({ lead, onClose }) {
             )}
 
             <div className="flex gap-2 text-[10px] flex-wrap">
-              {lead.source_platform && <Badge variant="outline" className="text-[9px]">Source: {lead.source_platform}</Badge>}
+              {lead.source && <Badge variant="outline" className="text-[9px]">Source: {lead.source}</Badge>}
               {lead.follow_up_attempts > 0 && <Badge variant="outline" className="text-[9px]">Follow-ups sent: {lead.follow_up_attempts}</Badge>}
             </div>
           </TabsContent>

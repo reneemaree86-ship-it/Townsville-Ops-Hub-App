@@ -9,7 +9,7 @@ import { Button } from '@/button';
 import { Clock, Check } from 'lucide-react';
 import { format, isPast } from 'date-fns';
 
-const CLOSED_STATUSES = ['converted', 'closed', 'rejected'];
+const CLOSED_STATUSES = ['Booked', 'Lost', 'Spam'];
 
 export default function FollowUps() {
   const { activeBusiness } = useOutletContext();
@@ -56,7 +56,7 @@ export default function FollowUps() {
                     <div className="flex items-center gap-3 min-w-0">
                       <Clock className={`w-4 h-4 flex-shrink-0 ${isOverdue ? 'text-red-500' : 'text-muted-foreground'}`} />
                       <div>
-                        <p className="text-xs font-medium">{lead.service_type || 'Cleaning Service'}</p>
+                        <p className="text-xs font-medium">{lead.service_requested || 'Cleaning Service'}</p>
                         <div className="flex gap-2 text-[10px] text-muted-foreground flex-wrap">
                           {lead.name && <span>{lead.name}</span>}
                           {lead.suburb && <span>{lead.suburb}</span>}

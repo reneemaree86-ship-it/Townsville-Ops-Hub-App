@@ -48,9 +48,9 @@ const SUBURBS = [
 ];
 
 const URGENCY_OPTIONS = [
-  { value: 'flexible', label: 'Flexible — any time suits' },
-  { value: 'this_week', label: 'This week' },
-  { value: 'urgent', label: 'Urgent — ASAP' },
+  { value: 'Cool - Flexible', label: 'Flexible — any time suits' },
+  { value: 'Warm - This Week', label: 'This week' },
+  { value: 'Hot - Urgent', label: 'Urgent — ASAP' },
 ];
 
 export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess }) {
@@ -64,14 +64,14 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
     phone: '',
     email: '',
     suburb: '',
-    service_type: '',
-    urgency: 'flexible',
+    service_requested: '',
+    urgency: 'Cool - Flexible',
     preferred_date: '',
     preferred_time: '',
     notes: '',
   });
 
-  const isManualApproval = MANUAL_APPROVAL_TYPES.includes(form.service_type);
+  const isManualApproval = MANUAL_APPROVAL_TYPES.includes(form.service_requested);
 
   const set = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -85,13 +85,13 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
         contact_phone: form.phone,
         contact_email: form.email,
         suburb: form.suburb,
-        service_type: form.service_type.split(' (')[0], // strip pricing suffix
+        service_requested: form.service_requested.split(' (')[0], // strip pricing suffix
         urgency: form.urgency,
-        source_platform: 'ops_hub_form',
-        original_text: `${mode === 'book' ? 'Booking request' : 'Quote request'} via Ops Hub form. Preferred date: ${form.preferred_date || 'flexible'}. Preferred time: ${form.preferred_time || 'flexible'}. Notes: ${form.notes || 'none'}`,
-        status: 'new',
+        source: 'ops_hub_form',
+        job_details: `${mode === 'book' ? 'Booking request' : 'Quote request'} via Ops Hub form. Preferred date: ${form.preferred_date || 'flexible'}. Preferred time: ${form.preferred_time || 'flexible'}. Notes: ${form.notes || 'none'}`,
+        status: 'New',
         manual_approval_required: isManualApproval,
-        manual_approval_reason: isManualApproval ? `Service type requires manual approval: ${form.service_type}` : null,
+        manual_approval_reason: isManualApproval ? `Service type requires manual approval: ${form.service_requested}` : null,
         lead_score: urgencyScore(),
         score_rationale: `Submitted via Ops Hub ${mode} form`,
         notes: form.notes,
@@ -105,14 +105,14 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
   };
 
   const urgencyScore = () => {
-    if (form.urgency === 'urgent') return 85;
-    if (form.urgency === 'this_week') return 70;
+    if (form.urgency === 'Hot - Urgent') return 85;
+    if (form.urgency === 'Warm - This Week') return 70;
     return 55;
   };
 
   const canProceed = () => {
     if (step === 1) return form.name.trim() && form.phone.trim() && form.suburb;
-    if (step === 2) return form.service_type;
+    if (step === 2) return form.service_requested;
     return true;
   };
 
@@ -227,7 +227,7 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Service Required</p>
           <div className="space-y-1">
             <Label className="text-xs">Service Type *</Label>
-            <Select value={form.service_type} onValueChange={v => set('service_type', v)}>
+            <Select value={form.service_requested} onValueChange={v => set('service_requested', v)}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
@@ -301,7 +301,7 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
             />
           </div>
           <div className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Summary:</span> {form.service_type.split(' (')[0]} · {form.suburb} · {URGENCY_OPTIONS.find(o => o.value === form.urgency)?.label}
+            <span className="font-medium text-foreground">Summary:</span> {form.service_requested.split(' (')[0]} · {form.suburb} · {URGENCY_OPTIONS.find(o => o.value === form.urgency)?.label}
           </div>
 
           {error && (
