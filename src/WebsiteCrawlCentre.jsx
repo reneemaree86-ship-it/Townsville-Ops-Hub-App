@@ -15,7 +15,7 @@ export default function WebsiteCrawlCentre() {
 
   const { data: allAudits = [] } = useQuery({
     queryKey: ['all-audits'],
-    queryFn: () => base44.entities.SeoScanResult.list('-created_date', 50),
+    queryFn: () => base44.entities.SeoAudit.list('-created_date', 50),
   });
 
   const crawlMutation = useMutation({

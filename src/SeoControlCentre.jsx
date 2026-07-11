@@ -22,7 +22,7 @@ export default function SeoControlCentre() {
 
   const { data: audits = [] } = useQuery({
     queryKey: ['audits', bid],
-    queryFn: () => bid ? base44.entities.SeoScanResult.filter({ business_id: bid }, '-created_date', 20) : [],
+    queryFn: () => bid ? base44.entities.SeoAudit.filter({ business_id: bid }, '-created_date', 20) : [],
     enabled: !!bid,
   });
 
