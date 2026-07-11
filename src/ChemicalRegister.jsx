@@ -110,10 +110,8 @@ export default function ChemicalRegister() {
     if (!file) return;
     setUploadingField(field);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await base44.storage.uploadFile(file, { public: true });
-      setForm(f => ({ ...f, [field]: res.url }));
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm(f => ({ ...f, [field]: file_url }));
     } catch (err) {
       alert(`Upload failed: ${err?.message || 'Unknown error'}`);
     } finally {
