@@ -33,8 +33,8 @@ const PLATFORM_ICONS = {
 
 const STATUS_BADGE = {
   'new': { label: 'New', className: 'bg-primary text-primary-foreground' },
-  'applied_responded': { label: 'applied_responded', className: 'bg-secondary text-secondary-foreground' },
-  'applied_responded': { label: 'Quote Sent', className: 'border border-amber-500 text-amber-600' },
+  'applied_responded': { label: 'Responded', className: 'bg-secondary text-secondary-foreground' },
+  'quote_sent': { label: 'Quote Sent', className: 'border border-amber-500 text-amber-600' },
   'won': { label: 'won', className: 'border border-emerald-500 text-emerald-600' },
 };
 

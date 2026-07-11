@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Search, Globe, TrendingUp, TestTube, Receipt,
   UserSearch, MapPin, Megaphone, Plug, AlertTriangle,
-  History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot, Sparkles, FolderOpen, Inbox, Users, FileSignature, Briefcase, Tag
+  History, Bell, Clock, CheckSquare, Settings, Link2, X, Bot, Sparkles, FolderOpen, Inbox, Users, FileSignature, Briefcase, Tag, FlaskConical
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { ScrollArea } from '@/scroll-area';
@@ -17,6 +17,7 @@ const navItems = [
   { label: 'Services Catalog', icon: Tag, path: '/services' },
   { label: 'Jobs', icon: Briefcase, path: '/jobs' },
   { label: 'Invoices', icon: Receipt, path: '/invoices' },
+  { label: 'Chemical Register', icon: FlaskConical, path: '/chemicals' },
   { label: "Renee's Cleaning Services", icon: Sparkles, path: '/renees-cleaning', featured: true },
   { label: 'SEO Control Centre', icon: Search, path: '/seo' },
   { label: 'Website Crawl Centre', icon: Globe, path: '/crawl' },

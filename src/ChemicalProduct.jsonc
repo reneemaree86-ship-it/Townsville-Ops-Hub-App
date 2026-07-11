@@ -1,0 +1,112 @@
+{
+  "name": "ChemicalProduct",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Business this product belongs to"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Brand / manufacturer"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["General Purpose", "Disinfectant", "Degreaser", "Bathroom/Toilet", "Glass/Window", "Floor Care", "Carpet/Upholstery", "Mould Treatment", "Pressure Washing", "Specialised"],
+      "description": "Product category"
+    },
+    "common_use": {
+      "type": "string",
+      "description": "What this product is used for"
+    },
+    "hazards": {
+      "type": "string",
+      "description": "Hazard summary (e.g. irritant, corrosive, flammable)"
+    },
+    "ppe_required": {
+      "type": "string",
+      "description": "Required PPE (e.g. gloves, goggles, mask)"
+    },
+    "dilution_ratio": {
+      "type": "string",
+      "description": "Dilution instructions (e.g. 1:10 with water)"
+    },
+    "storage_instructions": {
+      "type": "string",
+      "description": "Storage requirements"
+    },
+    "first_aid": {
+      "type": "string",
+      "description": "First aid instructions"
+    },
+    "sds_url": {
+      "type": "string",
+      "description": "Safety Data Sheet document URL"
+    },
+    "pds_url": {
+      "type": "string",
+      "description": "Product Data Sheet document URL"
+    },
+    "sds_expiry": {
+      "type": "string",
+      "format": "date",
+      "description": "SDS expiry date"
+    },
+    "pds_expiry": {
+      "type": "string",
+      "format": "date",
+      "description": "PDS expiry date"
+    },
+    "sds_status": {
+      "type": "string",
+      "enum": ["current", "expiring_soon", "expired", "missing"],
+      "default": "missing",
+      "description": "SDS document status"
+    },
+    "pds_status": {
+      "type": "string",
+      "enum": ["current", "expiring_soon", "expired", "missing"],
+      "default": "missing",
+      "description": "PDS document status"
+    },
+    "sizes_available": {
+      "type": "string",
+      "description": "Available sizes (e.g. 1L, 5L, 20L)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this product is currently in use"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": ["product_name"],
+  "rls": {
+    "create": { "created_by_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "created_by_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
+}

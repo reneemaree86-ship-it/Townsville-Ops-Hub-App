@@ -34,6 +34,7 @@ import BusinessSettings from '@/BusinessSettings';
 import UrlWatchlistPage from '@/UrlWatchlistPage';
 import CleaningAgent from '@/CleaningAgent';
 import ReneesCleaningProfile from '@/ReneesCleaningProfile';
+import ChemicalRegister from '@/ChemicalRegister';
 import BusinessInbox from '@/BusinessInbox';
 import Invoices from '@/Invoices';
 import Clients from '@/Clients';
@@ -129,6 +130,7 @@ const AuthenticatedApp = () => {
           <Route path="/watchlist" element={<UrlWatchlistPage />} />
           <Route path="/agent" element={<CleaningAgent />} />
           <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
+          <Route path="/chemicals" element={<ChemicalRegister />} />
         </Route>
       </Route>
 
