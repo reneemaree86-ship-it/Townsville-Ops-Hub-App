@@ -28,7 +28,7 @@ const SERVICE_RATES = {
 
 // Email sending requires a deployed /api/sendInvoiceEmail backend function.
 // Flip this to true once that route is confirmed deployed and working.
-const EMAIL_SENDING_ENABLED = false;
+const EMAIL_SENDING_ENABLED = true;
 
 const ADD_ONS = [
   { label: 'Security Screen', price: 8 },
@@ -753,29 +753,11 @@ export default function Invoices() {
     }
     setSendingInvoiceId(invoiceId);
     try {
-      const response = await fetch('/api/sendInvoiceEmail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceId,
-          clientEmail,
-          clientName,
-          businessId: activeBusiness?.id,
-        }),
+      const data = await base44.functions.invoke('sendInvoiceEmail', {
+        invoiceId,
+        clientEmail,
+        clientName,
       });
-
-      if (response.status === 404) {
-        alert('Email sending setup required — the email service is not deployed yet.');
-        return;
-      }
-
-      let data;
-      try {
-        data = await response.json();
-      } catch (parseErr) {
-        alert('Email sending setup required — unexpected response from server.');
-        return;
-      }
 
       if (data.success) {
         alert(`✅ Invoice sent to ${clientEmail}`);
