@@ -17,13 +17,13 @@ import LeadDetailModal from '@/LeadDetailModal';
 import ScanLogPanel from '@/ScanLogPanel';
 import { UserSearch, Loader2, Plus, Clipboard, Search, Flame, AlertTriangle, CheckCircle2, XCircle, Settings } from 'lucide-react';
 
-const STATUS_FILTERS = ['all','New','applied_responded','Qualified','Quote Sent','won','lost','not_suitable'];
+const STATUS_FILTERS = ['all','new','hot','needs_approval','draft_ready','applied_responded','follow_up_due','won','lost','not_suitable','archived'];
 
 const URGENCY_OPTIONS = [
-  { value: 'Hot - Urgent', label: 'Hot - Urgent' },
-  { value: 'Warm - This Week', label: 'Warm - This Week' },
-  { value: 'Cool - Flexible', label: 'Cool - Flexible' },
-  { value: 'Tyre Kicker', label: 'Tyre Kicker' },
+  { value: 'urgent', label: 'Hot - Urgent' },
+  { value: 'high', label: 'Warm - This Week' },
+  { value: 'medium', label: 'Cool - Flexible' },
+  { value: 'low', label: 'Tyre Kicker' },
 ];
 
 export default function LeadFinder() {
@@ -41,7 +41,7 @@ export default function LeadFinder() {
   const [latestScanLog, setLatestScanLog] = useState(null);
   const emptyManualForm = {
     name: '', contact_phone: '', contact_email: '',
-    service_needed: '', suburb: '', urgency: 'Tyre Kicker',
+    service_needed: '', suburb: '', urgency: 'low',
     notes: '', source_url: '',
   };
   const [manualForm, setManualForm] = useState(emptyManualForm);
@@ -89,7 +89,7 @@ export default function LeadFinder() {
       business_id: bid,
       source: 'Manual Entry',
       score: 50,
-      status: 'New',
+      status: 'new',
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['leads'] }); setImportOpen(false); setManualForm(emptyManualForm); },
   });
@@ -169,14 +169,14 @@ export default function LeadFinder() {
                           source: pasteSource,
                           service_needed: parsedResult.service_needed || 'Cleaning',
                           suburb: parsedResult.suburb || '',
-                          urgency: ['Hot - Urgent','Warm - This Week','Cool - Flexible','Tyre Kicker'].includes(parsedResult.urgency) ? parsedResult.urgency : 'Tyre Kicker',
+                          urgency: ['urgent','high','medium','low'].includes(parsedResult.urgency) ? parsedResult.urgency : 'low',
                           job_details: pasteText,
                           budget_clues: parsedResult.budget_clues || '',
                           contact_phone: parsedResult.contact_phone || '',
                           contact_email: parsedResult.contact_email || '',
                           score: parsedResult.score || 50,
                           score_rationale: parsedResult.score_rationale || '',
-                          status: 'New',
+                          status: 'new',
                           response_draft: parsedResult.response_draft || '',
                           manual_approval_required: !!parsedResult.manual_approval_required,
                           manual_approval_reason: parsedResult.manual_approval_required ? 'Flagged by AI parser -- review before contacting.' : '',
@@ -272,8 +272,8 @@ export default function LeadFinder() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Total Leads" value={leads.length} icon={UserSearch} />
-        <StatCard label="Hot Leads" value={leads.filter(l => (l.score || 0) >= 70 || l.urgency === 'Hot - Urgent').length} icon={Flame} color="text-orange-500" />
-        <StatCard label="New" value={leads.filter(l => l.status === 'New').length} icon={Plus} color="text-blue-500" />
+        <StatCard label="Hot Leads" value={leads.filter(l => (l.score || 0) >= 70 || l.urgency === 'urgent').length} icon={Flame} color="text-orange-500" />
+        <StatCard label="New" value={leads.filter(l => l.status === 'new').length} icon={Plus} color="text-blue-500" />
         <StatCard label="Won" value={leads.filter(l => l.status === 'won').length} icon={Search} color="text-emerald-500" />
       </div>
 

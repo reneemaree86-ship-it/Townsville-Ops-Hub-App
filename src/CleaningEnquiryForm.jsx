@@ -48,9 +48,9 @@ const SUBURBS = [
 ];
 
 const URGENCY_OPTIONS = [
-  { value: 'Cool - Flexible', label: 'Flexible — any time suits' },
-  { value: 'Warm - This Week', label: 'This week' },
-  { value: 'Hot - Urgent', label: 'Urgent — ASAP' },
+  { value: 'medium', label: 'Flexible — any time suits' },
+  { value: 'high', label: 'This week' },
+  { value: 'urgent', label: 'Urgent — ASAP' },
 ];
 
 export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess }) {
@@ -65,7 +65,7 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
     email: '',
     suburb: '',
     service_needed: '',
-    urgency: 'Cool - Flexible',
+    urgency: 'medium',
     preferred_date: '',
     preferred_time: '',
     notes: '',
@@ -89,7 +89,7 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
         urgency: form.urgency,
         source: 'ops_hub_form',
         job_details: `${mode === 'book' ? 'Booking request' : 'Quote request'} via Ops Hub form. Preferred date: ${form.preferred_date || 'flexible'}. Preferred time: ${form.preferred_time || 'flexible'}. Notes: ${form.notes || 'none'}`,
-        status: 'New',
+        status: 'new',
         manual_approval_required: isManualApproval,
         manual_approval_reason: isManualApproval ? `Service type requires manual approval: ${form.service_needed}` : null,
         score: urgencyScore(),
@@ -105,8 +105,8 @@ export default function CleaningEnquiryForm({ mode = 'book', onClose, onSuccess 
   };
 
   const urgencyScore = () => {
-    if (form.urgency === 'Hot - Urgent') return 85;
-    if (form.urgency === 'Warm - This Week') return 70;
+    if (form.urgency === 'urgent') return 85;
+    if (form.urgency === 'high') return 70;
     return 55;
   };
 

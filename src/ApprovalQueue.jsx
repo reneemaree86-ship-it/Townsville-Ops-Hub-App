@@ -15,7 +15,7 @@ export default function ApprovalQueue() {
 
   const { data: leads = [] } = useQuery({
     queryKey: ['leads-approval', bid],
-    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid, status: 'New', manual_approval_required: true }) : [],
+    queryFn: () => bid ? base44.entities.Lead.filter({ business_id: bid, status: 'needs_approval' }) : [],
     enabled: !!bid,
   });
   const { data: adDrafts = [] } = useQuery({

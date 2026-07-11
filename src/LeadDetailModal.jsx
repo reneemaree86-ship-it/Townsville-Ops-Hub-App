@@ -14,20 +14,20 @@ import StatusBadge from '@/StatusBadge';
 import { Copy, ExternalLink, CheckCircle2 } from 'lucide-react';
 
 const STATUSES = [
-  { value: 'New', label: 'New' },
+  { value: 'new', label: 'New' },
   { value: 'applied_responded', label: 'applied_responded' },
-  { value: 'Qualified', label: 'Qualified' },
-  { value: 'Quote Sent', label: 'Quote Sent' },
+  { value: 'draft_ready', label: 'Quote Ready' },
+  { value: 'applied_responded', label: 'Quote Sent' },
   { value: 'won', label: 'won' },
   { value: 'lost', label: 'lost' },
   { value: 'not_suitable', label: 'not_suitable' },
 ];
 
 const URGENCY_OPTIONS = [
-  { value: 'Hot - Urgent', label: 'Hot - Urgent' },
-  { value: 'Warm - This Week', label: 'Warm - This Week' },
-  { value: 'Cool - Flexible', label: 'Cool - Flexible' },
-  { value: 'Tyre Kicker', label: 'Tyre Kicker' },
+  { value: 'urgent', label: 'Hot - Urgent' },
+  { value: 'high', label: 'Warm - This Week' },
+  { value: 'medium', label: 'Cool - Flexible' },
+  { value: 'low', label: 'Tyre Kicker' },
 ];
 
 export default function LeadDetailModal({ lead, onClose }) {
@@ -38,8 +38,8 @@ export default function LeadDetailModal({ lead, onClose }) {
     contact_email: lead.contact_email || '',
     suburb: lead.suburb || '',
     service_needed: lead.service_needed || '',
-    urgency: lead.urgency || 'Tyre Kicker',
-    status: lead.status || 'New',
+    urgency: lead.urgency || 'medium',
+    status: lead.status || 'new',
     notes: lead.notes || '',
     response_draft: lead.response_draft || '',
     manual_approval_required: !!lead.manual_approval_required,

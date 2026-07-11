@@ -61,7 +61,7 @@ export default function Dashboard() {
     return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading businesses...</div>;
   }
 
-  const hotLeads = leads.filter(l => (l.score || 0) >= 70 || l.urgency === 'Hot - Urgent');
+  const hotLeads = leads.filter(l => (l.score || 0) >= 70 || l.urgency === 'urgent');
   const followUps = leads.filter(l => !!l.follow_up_date && !['won','lost','not_suitable'].includes(l.status));
   const openErrors = errors.filter(e => e.fix_status !== 'fixed');
   const lastAudit = audits[0];

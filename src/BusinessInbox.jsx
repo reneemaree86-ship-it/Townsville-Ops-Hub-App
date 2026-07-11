@@ -32,9 +32,9 @@ const PLATFORM_ICONS = {
 };
 
 const STATUS_BADGE = {
-  'New': { label: 'New', className: 'bg-primary text-primary-foreground' },
+  'new': { label: 'New', className: 'bg-primary text-primary-foreground' },
   'applied_responded': { label: 'applied_responded', className: 'bg-secondary text-secondary-foreground' },
-  'Quote Sent': { label: 'Quote Sent', className: 'border border-amber-500 text-amber-600' },
+  'applied_responded': { label: 'Quote Sent', className: 'border border-amber-500 text-amber-600' },
   'won': { label: 'won', className: 'border border-emerald-500 text-emerald-600' },
 };
 
@@ -82,7 +82,7 @@ export default function BusinessInbox() {
     platform: l.source || 'direct',
     last_message: l.job_details || '(no message text captured)',
     time: l.created_date ? new Date(l.created_date) : new Date(),
-    unread: l.status === 'New',
+    unread: l.status === 'new',
     status: l.status,
     suburb: l.suburb,
     service: l.service_needed,
@@ -202,7 +202,7 @@ export default function BusinessInbox() {
                         <div className="flex items-center gap-1">
                           {thread.suburb && <span className="text-[10px] text-muted-foreground">{thread.suburb}</span>}
                           {thread.suburb && <span className="text-[10px] text-muted-foreground">·</span>}
-                          <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[thread.status] || STATUS_BADGE['New']).className}`}>
+                          <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[thread.status] || STATUS_BADGE['new']).className}`}>
                             {(STATUS_BADGE[thread.status] || { label: thread.status }).label}
                           </Badge>
                         </div>
@@ -227,7 +227,7 @@ export default function BusinessInbox() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-sm text-foreground">{selectedThread.name}</h3>
-                    <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[selectedThread.status] || STATUS_BADGE['New']).className}`}>
+                    <Badge className={`h-4 text-[9px] px-1 ${(STATUS_BADGE[selectedThread.status] || STATUS_BADGE['new']).className}`}>
                       {(STATUS_BADGE[selectedThread.status] || { label: selectedThread.status }).label}
                     </Badge>
                   </div>
