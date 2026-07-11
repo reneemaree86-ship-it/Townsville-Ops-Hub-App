@@ -33,7 +33,7 @@ export default function SeoControlCentre() {
   });
 
   const auditMutation = useMutation({
-    mutationFn: () => base44.functions.invoke('runSeoAudit', { business_id: bid, website_url: websiteUrl }),
+    mutationFn: () => base44.functions.invoke('seoAudit', { business_id: bid, website_url: websiteUrl }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['audits'] });
       qc.invalidateQueries({ queryKey: ['seo-issues'] });

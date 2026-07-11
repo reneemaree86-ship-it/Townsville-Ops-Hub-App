@@ -20,7 +20,7 @@ export default function WebsiteCrawlCentre() {
 
   const crawlMutation = useMutation({
     mutationFn: ({ business_id, website_url }) =>
-      base44.functions.invoke('runSeoAudit', { business_id, website_url }),
+      base44.functions.invoke('seoAudit', { business_id, website_url }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['all-audits'] }),
   });
 
