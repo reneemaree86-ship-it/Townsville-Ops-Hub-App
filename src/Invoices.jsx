@@ -471,6 +471,18 @@ total_amount: Number(total.toFixed(2)),
 
       <div>
         <Label className="text-xs">Due Date</Label>
+        <Select onValueChange={applyServiceTemplate}>
+  <SelectTrigger className="mt-2 text-sm">
+    <SelectValue placeholder="Choose a saved service template..." />
+  </SelectTrigger>
+  <SelectContent>
+    {serviceTemplates.map(template => (
+      <SelectItem key={template.id} value={template.id}>
+        {template.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
         <Input type="date" className="mt-1 text-sm max-w-xs" value={form.due_date}
           onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
       </div>
