@@ -931,7 +931,7 @@ const totalsByStatus = invoices.reduce((acc, inv) => {
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                       <span className="text-sm font-bold text-foreground whitespace-nowrap hidden sm:inline">
-                        ${parseFloat(inv.total_amount || 0).toFixed(2)}
+                        ${getInvoiceTotal(inv).toFixed(2)}
                       </span>
                       {inv.status === 'paid' ? (
                         <Button size="sm" variant="ghost"
