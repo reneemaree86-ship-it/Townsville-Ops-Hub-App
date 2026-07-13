@@ -1,0 +1,25 @@
+{
+  "name": "ServiceTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name shown in the invoice dropdown"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full service description"
+    },
+    "unit_price": {
+      "type": "number",
+      "default": 0
+    },
+    "business_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "description"
+  ]
+}
