@@ -375,7 +375,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
         service_type: primaryDescription,
         line_items: cleanedLineItems,
         travel_fee: parseFloat(travelFee) || 0,
-        amount: subtotal.toFixed(2),
+        amount:number subtotal.toFixed(2),
         gst_enabled: gstEnabled,
         gst_amount:number gst.toFixed(2),
         total_amount:number total.toFixed(2),
