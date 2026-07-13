@@ -327,7 +327,20 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
   });
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+const [serviceTemplates, setServiceTemplates] = useState([]);
 
+useEffect(() => {
+  const loadServiceTemplates = async () => {
+    try {
+      const templates = await base44.entities.ServiceTemplate.list();
+      setServiceTemplates(templates);
+    } catch (err) {
+      console.error('Could not load service templates', err);
+    }
+  };
+
+  loadServiceTemplates();
+}, []);
   const selectedClient = clients.find(c => c.id === form.client_id);
 
   const lineTotal = (li) => (parseFloat(li.quantity) || 0) * (parseFloat(li.unit_price) || 0);
