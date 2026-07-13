@@ -368,10 +368,44 @@ const applyServiceTemplate = (templateId) => {
     unit_price: template.unit_price || 0,
   }]);
 };
+  
   const updateLineItem = (id, field, value) => {
+    
     setLineItems(items => items.map(li => li.id === id ? { ...li, [field]: value } : li));
   };
+const saveServiceTemplate = async () => {
+  const firstItem = lineItems[0];
 
+  if (!templateName.trim()) {
+    alert('Enter a template name first.');
+    return;
+  }
+
+  if (!firstItem?.description?.trim()) {
+    alert('Enter a service description first.');
+    return;
+  }
+
+  try {
+    const savedTemplate = await base44.entities.ServiceTemplate.create({
+      name: templateName.trim(),
+      description: firstItem.description.trim(),
+      unit_price: parseFloat(firstItem.unit_price) || 0,
+      business_id: activeBusiness?.id || '',
+    });
+
+    setServiceTemplates(templates => [...templates, savedTemplate]);
+    setTemplateName('');
+    alert('Service template saved.');
+  } catch (err) {
+    console.error('Could not save service template', err);
+    alert(`Could not save template: ${err?.message || 'Unknown error'}`);
+  }
+};const updateLineItem = (id, field, value) => {
+  setLineItems(items =>
+    items.map(li => li.id === id ? { ...li, [field]: value } : li)
+  );
+};
   const removeLineItem = (id) => {
     setLineItems(items => items.length > 1 ? items.filter(li => li.id !== id) : items);
   };
