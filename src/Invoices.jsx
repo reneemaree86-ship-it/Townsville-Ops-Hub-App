@@ -700,7 +700,6 @@ export default function Invoices() {
 
   const handleSave = async (data) => {
     try {
-      alert(JSON.stringify(data, null, 2));
       if (editingInvoice) {
         await base44.entities.Invoice.update(editingInvoice.id, data);
       } else {
