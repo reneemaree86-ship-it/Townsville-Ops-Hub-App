@@ -682,12 +682,21 @@ export default function Invoices() {
 
   const loadData = async () => {
     setLoading(true);
+    try {const [invoiceList, cli, biz] = await Promise.all([
+  base44.entities.Invoice.list(),
+  base44.entities.Client.list(),
+  base44.entities.Business.list(),
+]);
+
+const inv = await Promise.all(
+  invoiceList.map(async invoice => {
     try {
-      const [inv, cli, biz] = await Promise.all([
-        base44.entities.Invoice.list(),
-        base44.entities.Client.list(),
-        base44.entities.Business.list(),
-      ]);
+      return await base44.entities.Invoice.get(invoice.id);
+    } catch {
+      return invoice;
+    }
+  })
+);
       setInvoices(inv);
       setClients(cli);
       setBusinesses(biz);
@@ -926,7 +935,7 @@ const totalsByStatus = invoices.reduce((acc, inv) => {
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {client?.name || 'Unknown Client'} · {inv.service_type || '—'} · Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-AU') : '—'}
+                        {client?.full_name || 'Unknown Client'} · {inv.service_type || '—'} · Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-AU') : '—'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
