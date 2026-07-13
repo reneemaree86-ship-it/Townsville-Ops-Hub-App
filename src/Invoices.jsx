@@ -78,12 +78,18 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
     : 'Upon receipt';
 
   const lineItems = invoice.line_items || [];
-  const subtotal = parseFloat(invoice.amount || 0);
-  const gstEnabled = invoice.gst_enabled !== false;
-  const gst = gstEnabled ? parseFloat(invoice.gst_amount || 0) : 0;
-  const total = parseFloat(invoice.total_amount || 0);
   const travelFee = parseFloat(invoice.travel_fee || 0);
 
+const serviceSubtotal = lineItems.reduce((sum, item) => {
+  const qty = parseFloat(item.quantity) || 1;
+  const unitPrice = parseFloat(item.unit_price || 0);
+  return sum + (qty * unitPrice);
+}, 0);
+
+const subtotal = serviceSubtotal + travelFee;
+const gstEnabled = invoice.gst_enabled !== false;
+const gst = gstEnabled ? subtotal * 0.1 : 0;
+const total = subtotal + gst;
   const invoiceRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
 
