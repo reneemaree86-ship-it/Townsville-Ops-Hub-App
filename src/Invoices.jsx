@@ -328,7 +328,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
 const [serviceTemplates, setServiceTemplates] = useState([]);
-
+const [templateName, setTemplateName] = useState('');
 useEffect(() => {
   const loadServiceTemplates = async () => {
     try {
