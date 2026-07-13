@@ -370,6 +370,8 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
       await onSave({
         ...form,
         business_id: activeBusiness?.id,
+        invoice_date: existing?.invoice_date || new Date().toISOString().split('T')[0],
+        client_name: selectedClient?.full_name || '',
         service_type: primaryDescription,
         line_items: cleanedLineItems,
         travel_fee: parseFloat(travelFee) || 0,
