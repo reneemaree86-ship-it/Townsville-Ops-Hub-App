@@ -935,7 +935,7 @@ const totalsByStatus = invoices.reduce((acc, inv) => {
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {client?.full_name || 'Unknown Client'} · {inv.service_type || '—'} · Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-AU') : '—'}
+                        {client?.full_name || inv.client_name || 'Unknown Client'} · {inv.service_type || '—'} · Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-AU') : '—'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
