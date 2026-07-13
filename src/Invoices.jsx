@@ -512,7 +512,7 @@ total_amount: Number(total.toFixed(2)),
 
       {/* Line items editor */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="space-y-2 mb-2">
           <Label className="text-xs font-semibold">Services & Add-ons</Label>
           <Select onValueChange={applyServiceTemplate}>
   <SelectTrigger className="mt-2 text-sm">
