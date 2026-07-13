@@ -432,7 +432,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
           <SelectTrigger className="mt-1 text-sm"><SelectValue placeholder="Select client..." /></SelectTrigger>
           <SelectContent>
             {clients.map(c => (
-              <SelectItem key={c.id} value={c.id}>{c.name} — {c.suburb || c.address}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>{c.full_name} — {c.suburb || c.address}</SelectItem>
             ))}
           </SelectContent>
         </Select>
