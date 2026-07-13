@@ -471,7 +471,16 @@ total_amount: Number(total.toFixed(2)),
 
       <div>
         <Label className="text-xs">Due Date</Label>
-        <Select onValueChange={applyServiceTemplate}>
+        
+        <Input type="date" className="mt-1 text-sm max-w-xs" value={form.due_date}
+          onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
+      </div>
+
+      {/* Line items editor */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-xs font-semibold">Services & Add-ons</Label>
+          <Select onValueChange={applyServiceTemplate}>
   <SelectTrigger className="mt-2 text-sm">
     <SelectValue placeholder="Choose a saved service template..." />
   </SelectTrigger>
@@ -483,14 +492,6 @@ total_amount: Number(total.toFixed(2)),
     ))}
   </SelectContent>
 </Select>
-        <Input type="date" className="mt-1 text-sm max-w-xs" value={form.due_date}
-          onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
-      </div>
-
-      {/* Line items editor */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Label className="text-xs font-semibold">Services & Add-ons</Label>
         </div>
 
         <div className="hidden md:grid grid-cols-[1fr_70px_100px_90px_32px] gap-2 px-1 mb-1">
