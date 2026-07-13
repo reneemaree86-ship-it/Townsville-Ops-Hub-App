@@ -790,10 +790,24 @@ export default function Invoices() {
     setPreviewClient(client);
   };
 
-  const totalsByStatus = invoices.reduce((acc, inv) => {
-    acc[inv.status] = (acc[inv.status] || 0) + parseFloat(inv.total_amount || 0);
-    return acc;
-  }, {});
+  const getInvoiceTotal = (inv) => {
+  const serviceSubtotal = (inv.line_items || []).reduce((sum, item) => {
+    const qty = parseFloat(item.quantity) || 1;
+    const unitPrice = parseFloat(item.unit_price || 0);
+    return sum + (qty * unitPrice);
+  }, 0);
+
+  const travelFee = parseFloat(inv.travel_fee || 0);
+  const subtotal = serviceSubtotal + travelFee;
+  const gst = inv.gst_enabled !== false ? subtotal * 0.1 : 0;
+
+  return subtotal + gst;
+};
+
+const totalsByStatus = invoices.reduce((acc, inv) => {
+  acc[inv.status] = (acc[inv.status] || 0) + getInvoiceTotal(inv);
+  return acc;
+}, {});
 
   return (
     <div className="p-4 md:p-6 space-y-6">
