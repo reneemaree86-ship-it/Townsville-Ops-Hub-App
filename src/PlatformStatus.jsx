@@ -303,7 +303,7 @@ export default function PlatformStatus() {
     }, {})
   );
   const connectedCount = deduped.filter(c => ['connected','manual_monitoring_only','fallback_active'].includes(c.connection_status)).length;
-  const issueCount = deduped.filter(c => ['requires_authorised_connection','error','terms_restricted'].includes(c.connection_status)).length;
+  const issueCount = deduped.filter(c => ['requires_authorised_connection','error'].includes(c.connection_status) && !['Google Ads','Facebook Ads','Instagram','Google Business Profile','Semrush','Townsville Noticeboard'].includes(c.platform_name)).length;
 
   const availablePresets = KNOWN_PLATFORM_DEFAULTS.filter(
     p => !connections.some(c => c.platform_name === p.platform_name)
