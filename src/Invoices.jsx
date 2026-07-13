@@ -333,14 +333,18 @@ useEffect(() => {
   const loadServiceTemplates = async () => {
     try {
       const templates = await base44.entities.ServiceTemplate.list();
-      setServiceTemplates(templates);
+     setServiceTemplates(
+  templates.filter(template =>
+    !template.business_id || template.business_id === activeBusiness?.id
+  )
+);
     } catch (err) {
       console.error('Could not load service templates', err);
     }
   };
 
   loadServiceTemplates();
-}, []);
+}, [activeBusiness?.id]);
   const selectedClient = clients.find(c => c.id === form.client_id);
 
   const lineTotal = (li) => (parseFloat(li.quantity) || 0) * (parseFloat(li.unit_price) || 0);
