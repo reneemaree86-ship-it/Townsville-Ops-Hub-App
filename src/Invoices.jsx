@@ -357,7 +357,17 @@ useEffect(() => {
       setLineItems(items => [...items, { id, description: '', quantity: 1, unit_price: '' }]);
     }
   };
+const applyServiceTemplate = (templateId) => {
+  const template = serviceTemplates.find(t => t.id === templateId);
+  if (!template) return;
 
+  setLineItems([{
+    id: `li-${Date.now()}`,
+    description: template.description || template.name || '',
+    quantity: 1,
+    unit_price: template.unit_price || 0,
+  }]);
+};
   const updateLineItem = (id, field, value) => {
     setLineItems(items => items.map(li => li.id === id ? { ...li, [field]: value } : li));
   };
