@@ -526,16 +526,21 @@ total_amount: Number(total.toFixed(2)),
     ))}
   </SelectContent>
 </Select>
-          <div className="flex gap-2 mt-2 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 mt-2 w-full">
   <Input
     placeholder="Template name, e.g. Monthly Office Clean"
     value={templateName}
     onChange={e => setTemplateName(e.target.value)}
     className="text-sm"
   />
-  <Button type="button" variant="outline" onClick={saveServiceTemplate}>
+    <Button
+  type="button"
+  variant="outline"
+  onClick={saveServiceTemplate}
+  className="w-full sm:w-auto"
+>
     Save Template
-  </Button>
+</Button>
 </div>
         </div>
 
