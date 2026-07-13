@@ -393,9 +393,9 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
     line_items: buildCleanedLineItems(),
     travel_fee: parseFloat(travelFee) || 0,
     amount:number subtotal.toFixed(2),
-    gst_enabled: gstEnabled,
-    gst_amount: gst.toFixed(2),
-    total_amount: total.toFixed(2),
+    gst_enabled:number gstEnabled,
+    gst_amount:number gst.toFixed(2),
+    total_amount:number total.toFixed(2),
   };
 
   return (
