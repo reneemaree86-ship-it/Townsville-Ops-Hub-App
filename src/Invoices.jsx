@@ -401,7 +401,8 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
       number gstEnabled,
     gst_amount:
       number gst.toFixed(2),
-    total_amount:number total.toFixed(2),
+    total_amount:
+      number total.toFixed(2),
   };
 
   return (
