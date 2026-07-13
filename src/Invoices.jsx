@@ -67,7 +67,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
       return;
     }
     try {
-      await onSendEmail(invoice.id, client.email, client.name);
+      await onSendEmail(invoice.id, client.full_email, client.name);
     } catch (err) {
       console.error('Send invoice email failed', err);
       alert(`Could not send invoice: ${err?.message || 'Unknown error'}`);
@@ -119,7 +119,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
 
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
 
-      const fileName = `Invoice-${invoice.invoice_number || 'draft'}-${client?.name?.replace(/\s+/g, '-') || 'client'}.pdf`;
+      const fileName = `Invoice-${invoice.invoice_number || 'draft'}-${client?.full_name?.replace(/\s+/g, '-') || 'client'}.pdf`;
       pdf.save(fileName);
     } catch (err) {
       console.error('PDF generation failed', err);
@@ -163,7 +163,7 @@ function InvoicePreviewModal({ invoice, client, onClose, onSendEmail, businessId
           {/* Bill To */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Bill To</p>
-            <p className="text-sm font-semibold text-foreground">{client?.name || 'Client Name'}</p>
+            <p className="text-sm font-semibold text-foreground">{client?.full_name || 'Client Name'}</p>
             {client?.address && <p className="text-xs text-muted-foreground">{client.address}</p>}
             {client?.suburb && <p className="text-xs text-muted-foreground">{client.suburb}, QLD</p>}
             {client?.phone && <p className="text-xs text-muted-foreground">{client.phone}</p>}
@@ -377,8 +377,8 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
         travel_fee: parseFloat(travelFee) || 0,
         amount: subtotal.toFixed(2),
         gst_enabled: gstEnabled,
-        gst_amount: gst.toFixed(2),
-        total_amount: total.toFixed(2),
+        gst_amount:number gst.toFixed(2),
+        total_amount:number total.toFixed(2),
       });
     } catch (err) {
       console.error('Save invoice failed', err);
@@ -392,7 +392,7 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
     ...form,
     line_items: buildCleanedLineItems(),
     travel_fee: parseFloat(travelFee) || 0,
-    amount: subtotal.toFixed(2),
+    amount:number subtotal.toFixed(2),
     gst_enabled: gstEnabled,
     gst_amount: gst.toFixed(2),
     total_amount: total.toFixed(2),
