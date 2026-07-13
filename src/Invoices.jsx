@@ -401,11 +401,7 @@ const saveServiceTemplate = async () => {
     console.error('Could not save service template', err);
     alert(`Could not save template: ${err?.message || 'Unknown error'}`);
   }
-};const updateLineItem = (id, field, value) => {
-  setLineItems(items =>
-    items.map(li => li.id === id ? { ...li, [field]: value } : li)
-  );
-};
+
   const removeLineItem = (id) => {
     setLineItems(items => items.length > 1 ? items.filter(li => li.id !== id) : items);
   };
