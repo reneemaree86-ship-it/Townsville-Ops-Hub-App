@@ -50,6 +50,10 @@ export default function BusinessSettings() {
         service_base_address: activeBusiness.service_base_address || '',
         service_radius_km: activeBusiness.service_radius_km ?? '',
         abn: activeBusiness.abn || '',
+        bank_account_name: activeBusiness.bank_account_name || '',
+        bank_bsb: activeBusiness.bank_bsb || '',
+        bank_account_number: activeBusiness.bank_account_number || '',
+        payment_reference: activeBusiness.payment_reference || '',
         services: activeBusiness.services || [],
         suburbs_served: activeBusiness.suburbs_served || [],
       });
@@ -146,6 +150,38 @@ export default function BusinessSettings() {
             <div>
               <Label className="text-xs">ABN</Label>
               <Input value={form.abn || ''} onChange={e => setForm({...form, abn: e.target.value})} className="h-8 text-xs" />
+            </div>
+            <div>
+              <Label className="text-xs">Bank Account Name</Label>
+              <Input
+                value={form.bank_account_name || ''}
+                onChange={e => setForm({...form, bank_account_name: e.target.value})}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">BSB</Label>
+              <Input
+                value={form.bank_bsb || ''}
+                onChange={e => setForm({...form, bank_bsb: e.target.value})}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Account Number</Label>
+              <Input
+                value={form.bank_account_number || ''}
+                onChange={e => setForm({...form, bank_account_number: e.target.value})}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Payment Reference Instructions</Label>
+              <Input
+                value={form.payment_reference || ''}
+                onChange={e => setForm({...form, payment_reference: e.target.value})}
+                className="h-8 text-xs"
+              />
             </div>
             <div>
               <Label className="text-xs">Google Business Profile URL</Label>
