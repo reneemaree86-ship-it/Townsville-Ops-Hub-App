@@ -375,13 +375,10 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
         service_type: primaryDescription,
         line_items: cleanedLineItems,
         travel_fee: parseFloat(travelFee) || 0,
-        amount:
-          number subtotal.toFixed(2),
-        gst_enabled: gstEnabled,
-        gst_amount:
-          number gst.toFixed(2),
-        total_amount:
-          number total.toFixed(2),
+        amount: Number(subtotal.toFixed(2)),
+gst_enabled: gstEnabled,
+gst_amount: Number(gst.toFixed(2)),
+total_amount: Number(total.toFixed(2)),
       });
     } catch (err) {
       console.error('Save invoice failed', err);
@@ -395,14 +392,10 @@ function InvoiceForm({ clients, businesses, activeBusiness, onSave, onCancel, ex
     ...form,
     line_items: buildCleanedLineItems(),
     travel_fee: parseFloat(travelFee) || 0,
-    amount:
-      number subtotal.toFixed(2),
-    gst_enabled:
-      number gstEnabled,
-    gst_amount:
-      number gst.toFixed(2),
-    total_amount:
-      number total.toFixed(2),
+    amount: Number(subtotal.toFixed(2)),
+gst_enabled: gstEnabled,
+gst_amount: Number(gst.toFixed(2)),
+total_amount: Number(total.toFixed(2)),
   };
 
   return (
