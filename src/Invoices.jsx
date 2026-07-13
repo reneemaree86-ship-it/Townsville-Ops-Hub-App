@@ -922,7 +922,7 @@ const totalsByStatus = invoices.reduce((acc, inv) => {
                           {inv.status}
                         </Badge>
                         <span className="text-sm font-bold text-foreground sm:hidden">
-                          ${parseFloat(inv.total_amount || 0).toFixed(2)}
+                          ${getInvoiceTotal(inv).toFixed(2)}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
