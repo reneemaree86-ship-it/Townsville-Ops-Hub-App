@@ -196,7 +196,7 @@ const total = subtotal + gst;
                   return (
                     <tr key={i}>
                       <td className="py-2 text-foreground">
-                        {qty > 1 ? `${qty} x ${item.description} ($${unitPrice.toFixed(2)} ea)` : item.description}
+                        {qty > 1 ? `${qty} x ${item.description} ($${unitPrice.toFixed(2)}/hr)` : item.description}
                       </td>
                       <td className="py-2 text-right text-foreground">${lineTotal.toFixed(2)}</td>
                     </tr>
