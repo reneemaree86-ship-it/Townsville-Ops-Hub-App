@@ -456,7 +456,12 @@ function QuotePreviewModal({ quote, client, lead, onClose, onSent }) {
       pdf.save(fileName);
     } catch (err) {
       console.error('PDF generation failed', err);
-      alert('Could not generate PDF. Please try again.');
+      const isFrameBlocked = /cross-origin frame|SecurityError|Blocked a frame/i.test(err?.message || '') || err?.name === 'SecurityError';
+      if (isFrameBlocked) {
+        alert("PDF download isn't available inside this preview window. Please open the live site (not the builder preview) and try Download PDF from there.");
+      } else {
+        alert('Could not generate PDF. Please try again.');
+      }
     } finally {
       setDownloading(false);
     }
