@@ -262,7 +262,19 @@ const total = subtotal + gst;
               </div>
             </>
           )}
-
+{/* Payment Details */}
+<>
+  <Separator />
+  <div>
+    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+      Payment Details
+    </p>
+    <p className="text-sm text-foreground">Account Name: Renee Butt</p>
+    <p className="text-sm text-foreground">BSB: 034-668</p>
+    <p className="text-sm text-foreground">Account Number: 497518</p>
+    <p className="text-sm text-foreground">PayID: 35 572 084 098</p>
+  </div>
+</>
           {/* Notes */}
           {invoice.notes && (
             <>
