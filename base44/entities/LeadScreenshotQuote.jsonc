@@ -1,0 +1,198 @@
+{
+  "name": "LeadScreenshotQuote",
+  "type": "object",
+  "properties": {
+    "uploaded_image_url": {
+      "type": "string"
+    },
+    "extracted_text": {
+      "type": "string"
+    },
+    "lead_name": {
+      "type": "string"
+    },
+    "platform_source": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "gumtree",
+        "sms",
+        "email",
+        "whatsapp",
+        "instagram",
+        "other"
+      ],
+      "default": "other"
+    },
+    "suburb": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "standard_residential",
+        "detailed_refresh",
+        "deep_spring_clean",
+        "move_in_clean",
+        "pre_sale_clean",
+        "rental_inspection_rescue",
+        "office_commercial",
+        "wall_washing",
+        "pressure_washing",
+        "airbnb_standard",
+        "airbnb_same_day",
+        "airbnb_deep_reset",
+        "airbnb_post_guest",
+        "window_glass",
+        "decluttering",
+        "unknown"
+      ]
+    },
+    "property_type": {
+      "type": "string"
+    },
+    "bedrooms": {
+      "type": "number"
+    },
+    "bathrooms": {
+      "type": "number"
+    },
+    "condition_level": {
+      "type": "string",
+      "enum": [
+        "light",
+        "average",
+        "dirty",
+        "very_dirty",
+        "extreme"
+      ]
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ]
+    },
+    "recommended_hours_min": {
+      "type": "number"
+    },
+    "recommended_hours_max": {
+      "type": "number"
+    },
+    "hourly_rate": {
+      "type": "number"
+    },
+    "add_ons_detected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "travel_fee_estimate": {
+      "type": "number",
+      "default": 0
+    },
+    "estimated_total_min": {
+      "type": "number"
+    },
+    "estimated_total_max": {
+      "type": "number"
+    },
+    "recommended_quote_total": {
+      "type": "number"
+    },
+    "confidence_score": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "needs_manual_review"
+      ]
+    },
+    "missing_information": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "red_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_reply": {
+      "type": "string"
+    },
+    "ai_reasoning": {
+      "type": "string"
+    },
+    "quote_status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "needs_review",
+        "quoted",
+        "waiting_response",
+        "booked",
+        "not_suitable",
+        "lost"
+      ],
+      "default": "new"
+    },
+    "approval_notes": {
+      "type": "string"
+    },
+    "business_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "uploaded_image_url"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

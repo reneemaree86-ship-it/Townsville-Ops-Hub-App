@@ -606,10 +606,6 @@ export default function Quotes() {
   const [converting, setConverting] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  if (!activeBusiness) {
-    return <div className="p-8 text-center text-sm text-muted-foreground">Loading business…</div>;
-  }
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -632,6 +628,10 @@ export default function Quotes() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  if (!activeBusiness) {
+    return <div className="p-8 text-center text-sm text-muted-foreground">Loading business…</div>;
+  }
 
   const clientName = (id) => clients.find(c => c.id === id)?.name;
   const leadName = (id) => leads.find(l => l.id === id)?.name;
@@ -869,4 +869,4 @@ export default function Quotes() {
       )}
     </div>
   );
-}
+  }

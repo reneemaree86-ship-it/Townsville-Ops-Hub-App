@@ -1,0 +1,140 @@
+{
+  "name": "PlatformConnection",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "platform_name": {
+      "type": "string"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "not_connected",
+        "requires_authorised_connection",
+        "manual_monitoring_only",
+        "api_unavailable",
+        "terms_restricted",
+        "fallback_active",
+        "not_configured"
+      ],
+      "default": "not_connected"
+    },
+    "connection_type": {
+      "type": "string",
+      "enum": [
+        "api",
+        "oauth",
+        "manual",
+        "rss",
+        "webhook",
+        "none"
+      ],
+      "default": "none"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "External platform ID (e.g. Facebook Page ID or Google account resource name)"
+    },
+    "account_label": {
+      "type": "string",
+      "description": "Human-readable account/page name"
+    },
+    "access_token": {
+      "type": "string",
+      "description": "OAuth access token for this connection"
+    },
+    "refresh_token": {
+      "type": "string",
+      "description": "OAuth refresh token for this connection, used to obtain new access tokens"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "Selected Google Business Profile location resource ID"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Selected Google Business Profile location display name"
+    },
+    "token_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_successful_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform_name",
+    "connection_status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

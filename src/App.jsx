@@ -1,81 +1,52 @@
-import { Toaster } from "@/toaster"
+import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
-import PageNotFound from '@/PageNotFound';
-import { AuthProvider, useAuth } from '@/AuthContext';
-import ScrollToTop from '@/ScrollToTop';
-import ProtectedRoute from '@/ProtectedRoute';
-import Login from '@/Login';
-import Register from '@/Register';
-import ForgotPassword from '@/ForgotPassword';
-import ResetPassword from '@/ResetPassword';
+import { queryClientInstance } from '@/lib/query-client'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import ScrollToTop from './components/ScrollToTop';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import GoogleBusinessCallback from '@/pages/GoogleBusinessCallback';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 
 // Layout
-import DashboardLayout from '@/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
 // Pages
-import Dashboard from '@/Dashboard';
-import SeoControlCentre from '@/SeoControlCentre';
-import WebsiteCrawlCentre from '@/WebsiteCrawlCentre';
-import OrganicTraffic from '@/OrganicTraffic';
-import QaTestingCentre from '@/QaTestingCentre';
-import LeadFinder from '@/LeadFinder';
-import TownsvilleLeads from '@/TownsvilleLeads';
-import AdGenerator from '@/AdGenerator';
-import PlatformStatus from '@/PlatformStatus';
-import ErrorFixLog from '@/ErrorFixLog';
-import ScanHistory from '@/ScanHistory';
-import Notifications from '@/Notifications';
-import FollowUps from '@/FollowUps';
-import ApprovalQueue from '@/ApprovalQueue';
-import BusinessSettings from '@/BusinessSettings';
-import UrlWatchlistPage from '@/UrlWatchlistPage';
-import CleaningAgent from '@/CleaningAgent';
-import ReneesCleaningProfile from '@/ReneesCleaningProfile';
-import ChemicalRegister from '@/ChemicalRegister';
-import BusinessInbox from '@/BusinessInbox';
-import Invoices from '@/Invoices';
-import Clients from '@/Clients';
-import Quotes from '@/Quotes';
-import ServicesCatalog from '@/ServicesCatalog';
-import Jobs from '@/Jobs';
-
-// ---------------------------------------------------------------------------
-// FacebookOAuthCatcher
-//
-// Facebook redirects back to the app root with ?code=xxx&state=fb_connect
-// This component MUST run OUTSIDE of AuthenticatedApp so it fires before any
-// auth check, spinner, or navigateToLogin() can wipe the URL.
-//
-// Strategy:
-//   1. On first render, synchronously read the URL params (no useEffect delay).
-//   2. If we see a valid code+state, stash the code in sessionStorage immediately.
-//   3. Navigate to /platforms so PlatformStatus picks it up and calls the backend.
-// ---------------------------------------------------------------------------
-const FacebookOAuthCatcher = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  // Run synchronously on every render so we catch the code as soon as possible.
-  // We use a ref-free inline check rather than useEffect to avoid the one-frame
-  // delay that lets the auth guard fire first.
-  const params = new URLSearchParams(location.search);
-  const code = params.get('code');
-  const state = params.get('state');
-
-  useEffect(() => {
-    if (code && state === 'fb_connect') {
-      // Store the code before any navigation can occur
-      sessionStorage.setItem('fb_oauth_code', code);
-      // Replace the current history entry so the user can't land back on /?code=...
-      navigate('/platforms', { replace: true });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return null;
-};
+import Dashboard from '@/pages/Dashboard';
+import SeoControlCentre from '@/pages/SeoControlCentre';
+import WebsiteCrawlCentre from '@/pages/WebsiteCrawlCentre';
+import OrganicTraffic from '@/pages/OrganicTraffic';
+import QaTestingCentre from '@/pages/QaTestingCentre';
+import LeadFinder from '@/pages/LeadFinder';
+import TownsvilleLeads from '@/pages/TownsvilleLeads';
+import AdGenerator from '@/pages/AdGenerator';
+import PlatformStatus from '@/pages/PlatformStatus';
+import ErrorFixLog from '@/pages/ErrorFixLog';
+import ScanHistory from '@/pages/ScanHistory';
+import Notifications from '@/pages/Notifications';
+import FollowUps from '@/pages/FollowUps';
+import ApprovalQueue from '@/pages/ApprovalQueue';
+import BusinessSettings from '@/pages/BusinessSettings';
+import UrlWatchlistPage from '@/pages/UrlWatchlistPage';
+import CleaningAgent from '@/pages/CleaningAgent';
+import Bookings from '@/pages/Bookings';
+import Clients from '@/pages/Clients';
+import Quotes from '@/pages/Quotes';
+import Calculator from '@/pages/Calculator';
+import Invoices from '@/pages/Invoices';
+import LeadScreenshotQuoteGenerator from '@/pages/LeadScreenshotQuoteGenerator';
+import StaffRoster from '@/pages/StaffRoster';
+import Expenses from '@/pages/Expenses';
+import CompetitorWatchlist from '@/pages/CompetitorWatchlist';
+import ScopeOfWork from '@/pages/ScopeOfWork';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import DataDeletionPolicy from '@/pages/DataDeletionPolicy';
+import TermsOfService from '@/pages/TermsOfService';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -90,7 +61,7 @@ const AuthenticatedApp = () => {
 
   if (authError) {
     if (authError.type === 'user_not_registered') {
-      return <div>User not registered.</div>;
+      return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
       navigateToLogin();
       return null;
@@ -105,14 +76,9 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/google-business-callback" element={<GoogleBusinessCallback />} />
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/inbox" element={<BusinessInbox />} />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/quotes" element={<Quotes />} />
-          <Route path="/services" element={<ServicesCatalog />} />
-          <Route path="/jobs" element={<Jobs />} />
           <Route path="/seo" element={<SeoControlCentre />} />
           <Route path="/crawl" element={<WebsiteCrawlCentre />} />
           <Route path="/traffic" element={<OrganicTraffic />} />
@@ -129,10 +95,24 @@ const AuthenticatedApp = () => {
           <Route path="/settings" element={<BusinessSettings />} />
           <Route path="/watchlist" element={<UrlWatchlistPage />} />
           <Route path="/agent" element={<CleaningAgent />} />
-          <Route path="/renees-cleaning" element={<ReneesCleaningProfile />} />
-          <Route path="/chemicals" element={<ChemicalRegister />} />
+          <Route path="/file-centre" element={<Navigate to="/leads" replace />} />
+          <Route path="/bookings" element={<Bookings />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/quotes" element={<Quotes />} />
+          <Route path="/calculator" element={<Calculator />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/screenshot-quotes" element={<LeadScreenshotQuoteGenerator />} />
+          <Route path="/staff" element={<StaffRoster />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/competitors" element={<CompetitorWatchlist />} />
+          <Route path="/scope-of-work" element={<ScopeOfWork />} />
+          <Route path="/BusinessSettings" element={<Navigate to="/settings" replace />} />
         </Route>
       </Route>
+
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/data-deletion" element={<DataDeletionPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
@@ -145,9 +125,6 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          {/* FacebookOAuthCatcher MUST be outside AuthenticatedApp so it fires
-              before any auth check can navigate away from the callback URL */}
-          <FacebookOAuthCatcher />
           <AuthenticatedApp />
         </Router>
         <Toaster />

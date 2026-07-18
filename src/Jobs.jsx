@@ -273,10 +273,6 @@ export default function Jobs() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  if (!activeBusiness) {
-    return <div className="p-8 text-center text-sm text-muted-foreground">Loading business…</div>;
-  }
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -297,6 +293,10 @@ export default function Jobs() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  if (!activeBusiness) {
+    return <div className="p-8 text-center text-sm text-muted-foreground">Loading business…</div>;
+  }
 
   const clientName = (id) => clients.find(c => c.id === id)?.name || 'Unknown client';
   const staffNames = (ids) => (ids || []).map(id => staff.find(s => s.id === id)?.name).filter(Boolean).join(', ');
@@ -460,4 +460,4 @@ export default function Jobs() {
       />
     </div>
   );
-}
+              }

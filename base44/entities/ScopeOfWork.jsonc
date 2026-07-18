@@ -1,0 +1,177 @@
+{
+  "name": "ScopeOfWork",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "service_address": {
+      "type": "string"
+    },
+    "booking_id": {
+      "type": "string"
+    },
+    "invoice_id": {
+      "type": "string"
+    },
+    "template_id": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "general_maintenance_clean",
+        "detailed_refresh_clean",
+        "deep_spring_clean",
+        "office_commercial_cleaning",
+        "airbnb_shortstay_cleaning",
+        "move_in_cleaning",
+        "rental_inspection_rescue",
+        "pre_sale_presentation_cleaning",
+        "window_cleaning",
+        "pressure_washing",
+        "custom"
+      ]
+    },
+    "service_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "one_off",
+        "weekly",
+        "fortnightly",
+        "monthly",
+        "as_required"
+      ],
+      "default": "one_off"
+    },
+    "estimated_hours": {
+      "type": "number"
+    },
+    "pricing_type": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "fixed"
+      ],
+      "default": "hourly"
+    },
+    "hourly_rate": {
+      "type": "number"
+    },
+    "agreed_price": {
+      "type": "number"
+    },
+    "tasks_included": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "addons_selected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tasks_excluded": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "special_instructions": {
+      "type": "string"
+    },
+    "cleaner_notes": {
+      "type": "string"
+    },
+    "terms_conditions": {
+      "type": "string"
+    },
+    "client_acknowledged": {
+      "type": "boolean",
+      "default": false
+    },
+    "client_acknowledgement_name": {
+      "type": "string"
+    },
+    "client_acknowledgement_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "business_id",
+    "client_name",
+    "service_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

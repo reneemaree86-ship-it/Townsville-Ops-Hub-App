@@ -1,0 +1,110 @@
+{
+  "name": "ScopeTemplate",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "general_maintenance_clean",
+        "detailed_refresh_clean",
+        "deep_spring_clean",
+        "office_commercial_cleaning",
+        "airbnb_shortstay_cleaning",
+        "move_in_cleaning",
+        "rental_inspection_rescue",
+        "pre_sale_presentation_cleaning",
+        "window_cleaning",
+        "pressure_washing",
+        "custom"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "default_tasks_included": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "default_addons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "default_tasks_excluded": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "default_terms_conditions": {
+      "type": "string"
+    },
+    "is_master": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "service_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

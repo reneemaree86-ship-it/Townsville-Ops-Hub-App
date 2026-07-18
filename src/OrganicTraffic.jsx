@@ -198,4 +198,4 @@ export default function OrganicTraffic() {
       )}
     </div>
   );
-}
+                    }

@@ -1082,4 +1082,4 @@ const totalsByStatus = invoices.reduce((acc, inv) => {
       </Card>
     </div>
   );
-}
+          }

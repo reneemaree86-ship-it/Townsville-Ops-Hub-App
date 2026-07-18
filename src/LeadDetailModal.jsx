@@ -218,4 +218,4 @@ export default function LeadDetailModal({ lead, onClose }) {
       </DialogContent>
     </Dialog>
   );
-}
+                           }
