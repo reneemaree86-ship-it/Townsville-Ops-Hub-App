@@ -43,6 +43,7 @@ const EMPTY_FORM = {
 export default function ClientModal({ client, business, onSaved, onClose }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -69,20 +70,39 @@ export default function ClientModal({ client, business, onSaved, onClose }) {
   const handleSave = async () => {
     if (!form.full_name) return;
     setSaving(true);
-    const payload = { ...form, business_id: business.id };
-    if (client) {
-      await base44.entities.Client.update(client.id, payload);
-    } else {
-      await base44.entities.Client.create(payload);
+    setError(null);
+    try {
+      const payload = { ...form };
+      if (business?.id) {
+        payload.business_id = business.id;
+      }
+      if (client) {
+        await base44.entities.Client.update(client.id, payload);
+      } else {
+        await base44.entities.Client.create(payload);
+      }
+      qc.invalidateQueries(['clients']);
+      setSaving(false);
+      onSaved();
+    } catch (err) {
+      console.error('Client save error:', err);
+      setError(err.message || 'Failed to save client. Please try again.');
+      setSaving(false);
     }
-    setSaving(false);
-    onSaved();
   };
 
   const handleDelete = async () => {
-    await base44.entities.Client.delete(client.id);
-    qc.invalidateQueries(['clients', business.id]);
-    onClose();
+    setSaving(true);
+    try {
+      await base44.entities.Client.delete(client.id);
+      qc.invalidateQueries(['clients']);
+      if (business?.id) qc.invalidateQueries(['clients', business.id]);
+      onClose();
+    } catch (err) {
+      console.error('Client delete error:', err);
+      setError(err.message || 'Failed to delete client.');
+      setSaving(false);
+    }
   };
 
   return (
@@ -91,6 +111,12 @@ export default function ClientModal({ client, business, onSaved, onClose }) {
         <DialogHeader>
           <DialogTitle className="text-sm">{client ? 'Edit Client' : 'New Client'}</DialogTitle>
         </DialogHeader>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-2 text-xs text-red-600">
+            {error}
+          </div>
+        )}
 
         <div className="space-y-3">
           <div>
@@ -163,7 +189,7 @@ export default function ClientModal({ client, business, onSaved, onClose }) {
 
         <div className="flex items-center justify-between pt-3 border-t mt-3">
           {client ? (
-            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50 text-xs" onClick={handleDelete}>
+            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50 text-xs" onClick={handleDelete} disabled={saving}>
               <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
             </Button>
           ) : <div />}

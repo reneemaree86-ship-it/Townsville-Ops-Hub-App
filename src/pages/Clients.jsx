@@ -20,16 +20,29 @@ export default function Clients() {
   const [editClient, setEditClient] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Fetch all clients — business_id filter is optional
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients', activeBusiness?.id],
-    queryFn: () => activeBusiness ? base44.entities.Client.filter({ business_id: activeBusiness.id }) : [],
-    enabled: !!activeBusiness?.id,
+    queryKey: ['clients', activeBusiness?.id || 'all'],
+    queryFn: async () => {
+      if (activeBusiness?.id) {
+        return base44.entities.Client.filter({ business_id: activeBusiness.id });
+      }
+      return base44.entities.Client.list();
+    },
   });
 
   const { data: bookings = [] } = useQuery({
-    queryKey: ['bookings', activeBusiness?.id],
-    queryFn: () => activeBusiness ? base44.entities.Booking.filter({ business_id: activeBusiness.id }) : [],
-    enabled: !!activeBusiness?.id,
+    queryKey: ['bookings', activeBusiness?.id || 'all'],
+    queryFn: async () => {
+      if (activeBusiness?.id) {
+        return base44.entities.Booking.filter({ business_id: activeBusiness.id });
+      }
+      try {
+        return base44.entities.Booking.list();
+      } catch {
+        return [];
+      }
+    },
   });
 
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -53,7 +66,7 @@ export default function Clients() {
   });
 
   const handleSaved = () => {
-    qc.invalidateQueries(['clients', activeBusiness?.id]);
+    qc.invalidateQueries(['clients']);
     setShowModal(false);
     setEditClient(null);
   };
@@ -106,9 +119,9 @@ export default function Clients() {
 
       {/* Summary row */}
       <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground">
-        <span><span className="font-semibold text-foreground">{clients.filter(c => c.status === 'active').length}</span> active</span>
-        <span><span className="font-semibold text-yellow-600">{clients.filter(c => c.status === 'vip').length}</span> VIP</span>
-        <span><span className="font-semibold text-foreground">{clients.filter(c => c.status === 'inactive').length}</span> inactive</span>
+        <span><span className="font-semibold text-foreground">{clients.filter(c => c.status === 'active' || c.status === 'Active').length}</span> active</span>
+        <span><span className="font-semibold text-yellow-600">{clients.filter(c => c.status === 'vip' || c.status === 'VIP').length}</span> VIP</span>
+        <span><span className="font-semibold text-foreground">{clients.filter(c => c.status === 'inactive' || c.status === 'Inactive').length}</span> inactive</span>
       </div>
 
       {filteredClients.length === 0 ? (
